@@ -1,0 +1,60 @@
+:root {
+    --bg: #ddffe3;
+    --bg-surface: #fef6d8;
+    --bg-surface-hover: #fef9ea;
+    --bg-deep: #f0e0b8;
+    --text: #6a5a3a;
+    --text-h: #2e2318;
+    --border: #ddd0a8;
+    --border-cell: #b89060;
+    --border-cell-hover: #b7b860;
+    --accent: #d4a373;
+    --accent-fg: #2e2318;
+    --header-bg: #315426ff;
+    --header-fg: #e9edc9;
+    --reported-border: #7a9a30;
+    --reported-bg: #f4fad2;
+    --input-focus: #4085a0;
+    --bottom-bar-bg: #eefbf7;
+    --success: #7a9a30;
+    --error: #b84030;
+    --remove-border-hover: #9a4530;
+    --remove-bg-hover: #fae0d2;
+    --remove-border: rgb(175, 4, 4);
+    --remove-bg: rgb(255, 188, 188);
+    --shadow-card: 0 8px 24px rgba(120, 90, 40, 0.16), 0 2px 6px rgba(120, 90, 40, 0.09);
+    --shadow-th: 0 2px 8px rgba(80, 60, 20, 0.18);
+    --shadow-row: 0 1px 4px rgba(120, 90, 40, 0.10);
+    --shadow-bar: 0 -2px 12px rgba(120, 90, 40, 0.14);
+
+    --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, Consolas, monospace;
+
+    font: 18px/145% var(--sans);
+    letter-spacing: 0.18px;
+    color-scheme: light;
+    color: var(--text);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    @media (max-width: 1024px) {
+        font-size: 16px;
+    }
+}
+
+#root {
+    max-width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    justify-content: center;
+    border-inline: 1px solid var(--border);
+    min-height: 100svh;
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+}

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="37.937737mm"
+   height="37.937222mm"
+   viewBox="0 0 37.937737 37.937222"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-22.224483,-65.381029)">
+    <path
+       style="fill:#16171d;fill-opacity:1;stroke:none;stroke-width:1.32292;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       d="M 64.999999,97.5 H 50"
+       id="path3" />
+    <path
+       style="fill:#16171d;fill-opacity:1;stroke:none;stroke-width:1.32292;stroke-linecap:round;stroke-linejoin:bevel;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       d="M 57.499998,89.999999 V 105"
+       id="path4" />
+    <path
+       id="path8"
+       style="baseline-shift:baseline;display:inline;overflow:visible;opacity:1;vector-effect:none;fill:#f0f8ff;stroke-linecap:round;stroke-linejoin:bevel;paint-order:markers fill stroke;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+       d="m 41.193351,65.381022 a 3.96875,3.96875 0 0 0 -3.96875,3.96875 V 80.380623 H 26.193233 a 3.96875,3.96875 0 0 0 -3.96875,3.96875 3.96875,3.96875 0 0 0 3.96875,3.96875 h 11.031368 v 11.031368 a 3.96875,3.96875 0 0 0 3.96875,3.968749 3.96875,3.96875 0 0 0 3.96875,-3.968749 V 88.318123 h 11.031368 a 3.96875,3.96875 0 0 0 3.96875,-3.96875 3.96875,3.96875 0 0 0 -3.96875,-3.96875 H 45.162101 V 69.349772 a 3.96875,3.96875 0 0 0 -3.96875,-3.96875 z" />
+    <g
+       id="path9"
+       style="opacity:1">
+      <path
+         style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;fill:#315426;stroke-linecap:round;stroke-linejoin:bevel;paint-order:markers fill stroke;enable-background:accumulate;stop-color:#000000;stop-opacity:1"
+         d="M 56.193779,84.350036 H 26.193775"
+         id="path15" />
+    </g>
+  </g>
+</svg>
