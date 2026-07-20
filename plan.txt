@@ -2,7 +2,7 @@ features to implement:
 
     1. insert new devise ✅
     2. search and filter ✅
-    3. edit ✅ and remove
+    3. edit ✅ and remove ✅
     4. report
     5. users
     6. record

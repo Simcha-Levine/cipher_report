@@ -74,14 +74,14 @@ td:hover {
   overflow: visible;
 }
 
-.row.edit:hover td {
-  background-color: var(--bottom-bar-bg);
-  border-color: var(--input-focus);
+.row.not-selected:hover td {
+  background-color: #c3cfcb;
+  border-color: #2c5b6e;
 }
 
-.row.remove:hover td {
-  background-color: var(--remove-bg-hover);
-  border-color: var(--remove-border-hover);
+.selected td {
+  background-color: var(--bottom-bar-bg);
+  border-color: var(--input-focus);
 }
 
 .remove-selected {
@@ -288,31 +288,21 @@ th:last-child {
   padding: 10px 50px 10px 50px;
   border-radius: 20px;
   margin-top: 10px;
+  transition: transform 0.1s, box-shadow 0.1s ease;
 }
 
 .button.remove {
   background-color: var(--remove-border);
-  transition: transform 0.1s, box-shadow 0.1s ease;
 }
 
-.button.remove:hover {
-  background-color: var(--remove-border);
+.button:hover {
   transform: scale(105%);
   box-shadow: 2px 5px 5px 1px rgb(0, 0, 0);
 }
 
-.button.remove:active {
-  background-color: var(--remove-border);
+.button:active {
   transform: scale(100%);
   box-shadow: 1px 2px 2px 1px rgb(0, 0, 0);
-}
-
-.button:hover {
-  background-color: var(--border-cell);
-}
-
-.button:active {
-  background-color: var(--header-bg);
 }
 
 .button.focused {
@@ -360,4 +350,48 @@ th:last-child {
 
   transform: scale(110%);
   z-index: 1;
+}
+
+.right-click-menu {
+  position: absolute;
+  background-color: aliceblue;
+  border: rgb(103, 103, 103) solid 1px;
+  border-radius: 5px;
+  box-shadow: 5px 5px 5px 1px rgba(0, 0, 0, 0.474);
+  overflow: scroll;
+  z-index: 2;
+}
+
+.menu_item {
+  text-align: right;
+  padding-right: 5px;
+  padding-top: 2px;
+  min-width: 100px;
+  border-bottom: rgb(103, 103, 103) solid 1px;
+  transition: background-color 0.2s ease;
+}
+
+.menu_item:hover {
+  background-color: #afafaf;
+}
+
+.remove-dialog {
+  padding: 10px;
+  background-color: aliceblue;
+  border-radius: 30px;
+  box-shadow: 5px 5px 5px 1px rgba(0, 0, 0, 0.474);
+  /* border: rgb(103, 103, 103) solid 1px; */
+}
+
+.back-drop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 2;
+  /* background-color: #0011ff95; */
+}
+
+.dialog-table {
+  max-height: 500px;
+  overflow: scroll;
 }

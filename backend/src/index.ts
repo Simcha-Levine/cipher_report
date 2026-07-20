@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { editDevice, getDevices, insertNewDevice, version } from './queries.js'
+import { editDevice, getDevices, insertNewDevice, removeDevice, version } from './queries.js'
 import { cors } from "hono/cors"
 import type { Column, Row } from '@cipher-report/shared/types'
 
@@ -101,6 +101,30 @@ app.post("/edit_device", async (c) => {
 
   return c.json(result)
 })
+
+app.post("/remove_device", async (c) => {
+  const body = await c.req.json<Row>();
+
+  const result = await removeDevice(body)
+
+  return c.json(result)
+})
+
+app.post("/remove_devices", async (c) => {
+  const body = await c.req.json<Row[]>();
+
+  let val = "success"
+  for (const row of body) {
+    const result = await removeDevice(row)
+    if (result == "error") {
+      val = "error"
+    }
+  }
+
+  return c.json(val)
+})
+
+
 
 serve({
   fetch: app.fetch,

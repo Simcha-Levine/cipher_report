@@ -11,7 +11,7 @@ import type { Row } from '@cipher-report/shared/types';
 
 
 
-function Row({ device }: { device: Row }) {
+function Row({ device, index }: { device: Row, index: number }) {
   const state = useApp()
 
   let name = ""
@@ -19,25 +19,26 @@ function Row({ device }: { device: Row }) {
     name = "reported"
   }
 
-  if (state.mode == "remove" && state.remove.idList.has(device.id)) {
-    name = "remove-selected"
-  }
-
-  function press(e: React.MouseEvent, index: number) {
-    if (state.mode == 'edit') {
-      e.preventDefault()
-      state.edit.updateEditId(device, index)
-    } else if (state.mode == 'remove') {
-      e.preventDefault()
-      state.remove.clickId(device.id)
-    } else if (state.mode == 'list') {
-
-    }
+  let selected = 'not-selected'
+  if (state.rightClickMenu.id == device.id || state.select.idList.has(device.id)) {
+    selected = 'selected'
   }
 
   return (
     <tr
-      className={`row ${state.mode}`}
+      className={`row ${selected}`}
+      onMouseDown={(e) => {
+        state.select.updateDragged(true, index)
+        if (e.ctrlKey) {
+          state.select.toggle(device.id)
+        } else if (e.button != 2 || !state.select.idList.has(device.id)) {
+          state.select.click(device.id)
+        }
+      }}
+      onMouseUp={() => {
+        state.select.updateDragged(false, -1)
+      }}
+      onMouseMove={(e) => state.select.drag(index, e.ctrlKey)}
     >
       {
         device.columns.map((col, index) => (
@@ -45,7 +46,11 @@ function Row({ device }: { device: Row }) {
           <td
             className={name}
             key={index}
-            onMouseDown={(e) => press(e, index)}
+            onContextMenu={(e) => {
+              e.preventDefault()
+              state.rightClickMenu.setOn(e.clientX, e.clientY, device.id, index)
+              state.select.updateDragged(false, -1)
+            }}
           >
             {(state.columns[index].type == 'bool') ? (
               col == "true" &&
@@ -67,11 +72,11 @@ function Rows() {
     <>
       {state.devices
         .filter((device => checkFilter(device.columns, state.filters)))
-        .map((device) => (state.mode == "edit" && device.id == state.edit.id
+        .map((device, index) => (device.id == state.edit.id
           ?
           <Form key={device.id} formType='edit'></Form>
           :
-          < Row key={device.id} device={device} ></Row >
+          < Row key={device.id} index={index} device={device} ></Row >
         ))
       }
     </>
@@ -107,7 +112,7 @@ function Table() {
 
           <tbody>
             <Rows></Rows>
-            {state.mode == "add" && <Form formType='insert'></Form>}
+            {state.tabMode == "add" && <Form formType='insert'></Form>}
           </tbody>
         </table>
       </div>
@@ -217,8 +222,6 @@ function Tabs() {
   const tabs = [
     { name: "list", ui: "רשימה" },
     { name: "add", ui: "הוספה" },
-    { name: "edit", ui: "עריכה" },
-    { name: "remove", ui: "הסרה" },
     { name: "report", ui: "'דוח צ" },
     { name: "swap", ui: "החלפת חתימות" },
   ]
@@ -229,8 +232,8 @@ function Tabs() {
       {tabs.map((e) => (
         <div
           key={e.name}
-          className={`tab ${state.mode == e.name && 'selected'}`}
-          onMouseDown={() => { state.updateMode(e.name) }}
+          className={`tab ${state.tabMode == e.name && 'selected'}`}
+          onMouseDown={() => { state.updateTabMode(e.name) }}
         >{e.ui}</div>
       ))
       }
@@ -238,19 +241,109 @@ function Tabs() {
   )
 }
 
-function RemoveButton() {
+function RightClickMenu() {
   const state = useApp()
+  const menu = state.rightClickMenu
+
+  const tabs = [
+    { name: "copy", ui: "העתק" },
+    { name: "edit", ui: "עריכה" },
+    { name: "remove", ui: "הסרה" },
+  ]
 
   return (
-    <div className={`v ${(state.mode != 'remove' || state.remove.idList.size == 0) && 'hidden'}`}>
-      <div>שורות להסרה {state.remove.idList.size}</div>
+    <div
+      className={`right-click-menu ${!menu.isOn && 'hidden'}`}
+      style={{ top: menu.pos.y - 10, left: menu.pos.x - 10 }}
+      onMouseLeave={() => {
+        menu.setOff()
+      }}
+    >
+      {
+        tabs.map((e) => (
+          <div
+            id='menu_item'
+            key={e.name}
+            className="menu_item"
+            onClick={() => {
+              menu.setOff()
+              if (e.name == "edit") {
+                const row = state.devices.find((d) => d.id == menu.id)
+                if (row) {
+                  state.edit.updateEditId(row, menu.colIndex)
+                }
+                state.select.reset()
+              } else if (e.name == "remove") {
+                const row = state.devices.find((d) => d.id == menu.id)
+                if (row) {
+                  state.removeDialogOn.set(true)
+                }
+              } else if (e.name == "copy") {
+                const devices = state.devices.filter(device => state.select.idList.has(device.id))
+                let text = ""
+                for (const device of devices) {
+                  for (const col of device.columns) {
+                    text = `${text} ${col}, `
+                  }
+                  text = `${text} \n`
+                }
+                navigator.clipboard.writeText(text)
+              }
+            }}
+          >{e.ui}</div>
+        ))
+      }
+    </div >
+  )
+}
+
+function RemoveDialog() {
+  const state = useApp()
+
+  const devices = state.devices.filter(device => state.select.idList.has(device.id))
+
+  return (
+    <div className='back-drop v center'>
       <div className='h center'>
-        <div
-          className='button remove'
-          onClick={() => {
-            state.remove.sendRemove()
-          }}
-        >הסר</div>
+        <div className='remove-dialog'>
+          <div>:האם אתה רוצה להסיר את השורות</div>
+
+          <div className='h center dialog-table'>
+            <table>
+              <tbody>
+                {devices.map(device => (
+                  <tr key={device.id}>{device.columns.map((column, index) => (
+                    <td key={index}>{column}</td>
+                  ))
+                  }</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+
+          <div className='h center'>
+            <div
+              className='button remove'
+              onClick={() => {
+                state.sendRemove(devices)
+                state.removeDialogOn.set(false)
+              }}
+            >
+              remove
+            </div>
+            <div style={{ width: 200 }}></div>
+            <div
+              className='button'
+              onClick={() => {
+                state.select.reset()
+                state.removeDialogOn.set(false)
+              }}
+            >
+              cancel
+            </div>
+          </div>
+        </div>
       </div>
     </div >
   )
@@ -266,7 +359,15 @@ function App() {
   }, []);
 
   return (
-    <div className='main'>
+    <div
+      className='main'
+      onMouseDown={(e) => {
+        const child = e.target as HTMLElement
+        if (!child.closest("tbody") && child.id != 'menu_item' && !state.removeDialogOn.val) {
+          state.select.reset()
+        }
+      }}
+    >
       <Tabs></Tabs>
       <SearchBar></SearchBar>
       <div className='h center'>
@@ -274,8 +375,11 @@ function App() {
       </div>
       <InputButton input={state.insertForm} name='הוסף' visible={true}></InputButton>
       <InputButton input={state.edit.form} name='שנה' visible={state.edit.changed}></InputButton>
-      <RemoveButton></RemoveButton>
       <Logs></Logs>
+      <RightClickMenu></RightClickMenu>
+      {state.removeDialogOn.val &&
+        <RemoveDialog></RemoveDialog>
+      }
     </div >
   )
 }

@@ -3,7 +3,9 @@ import type { Column, Row } from "@cipher-report/shared/types"
 import { useInputForm, type InputForm } from "./inputForm"
 import { useFilters, type Filters } from "./filters"
 import { useEdit, type Edit } from "./edit"
-import { useRemove, type Remove } from "./remove"
+import { useRightClickMenu, type RightClickMenu } from "./rightClickMenu"
+import { useSelect, type Select } from "./select"
+import { useRemember, type Remember } from "./remember"
 
 export interface State {
     columns: Column[]
@@ -14,12 +16,15 @@ export interface State {
     filters: Filters
     insertForm: InputForm
     edit: Edit
-    remove: Remove
-    mode: string
+    removeDialogOn: Remember<boolean>
+    rightClickMenu: RightClickMenu
+    select: Select
+    tabMode: string
     loadColumns(): Promise<void>
     loadDevices(): Promise<void>
     updateSort(index: number): void
-    updateMode(newMode: string): void
+    updateTabMode(newMode: string): void
+    sendRemove(device: Row[]): void
 }
 
 export function useAppState(): State {
@@ -32,9 +37,16 @@ export function useAppState(): State {
     const filters = useFilters()
     const insertForm = useInputForm(columns, sendInsert)
     const edit = useEdit(columns, updateSendState)
-    const remove = useRemove(updateSendState)
-    const [mode, setMode] = useState("list")
+    const rightClickMenu = useRightClickMenu()
+    const select = useSelect(updateSendState, devices)
+    const [tabMode, setTabMode] = useState("list")
+    // const [removeDialogOn, setRemoveDialogOn] = useState()
+    const removeDialogOn = useRemember(false)
 
+
+
+
+    //intervals
     useEffect(() => {
         loadDevices()
         const interval = setInterval(loadDevices, 1000);
@@ -42,9 +54,9 @@ export function useAppState(): State {
         return () => clearInterval(interval);
     })
 
-    function updateMode(newMode: string) {
-        if (newMode != mode) {
-            setMode(newMode)
+    function updateTabMode(newMode: string) {
+        if (newMode != tabMode) {
+            setTabMode(newMode)
             insertForm.setFocused(false)
             edit.reset()
         }
@@ -128,6 +140,26 @@ export function useAppState(): State {
         setSendSuccess(success)
     }
 
+    async function sendRemove(devices: Row[]) {
+        updateSendState(true, "")
+
+        const response = await fetch('http://localhost:3000/remove_devices', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(devices)
+        })
+
+        const message: string = await response.json()
+        if (message == "success") {
+            updateSendState(true, "המכשירים הוסרו בהצלחה")
+        } else {
+            updateSendState(false, "ארעה תקלה")
+
+        }
+    }
+
 
     return {
         columns,
@@ -138,12 +170,15 @@ export function useAppState(): State {
         filters,
         insertForm,
         edit,
-        remove,
-        mode,
+        rightClickMenu,
+        select,
+        tabMode,
+        removeDialogOn,
         loadColumns,
         loadDevices,
         updateSort,
-        updateMode,
+        updateTabMode,
+        sendRemove,
     }
 
 }

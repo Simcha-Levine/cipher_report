@@ -48,7 +48,8 @@ export async function insertNewDevice(device: string[]) {
 
     try {
         await pool.query(
-            `INSERT INTO devices (${columnNames})
+            `
+            INSERT INTO devices (${columnNames})
             VALUES (${ph})
             `, device
         );
@@ -63,7 +64,27 @@ export async function insertNewDevice(device: string[]) {
     return "success"
 }
 
-// export function removeDevices(ids)
+export async function removeDevice(device: Row) {
+
+    const columnNames = columns.map(c => c.name).join(", ");
+    const ph = columns.map((_, index) => `$${index + 2}`).join(", ")
+
+    try {
+        const result = await pool.query(`
+            DELETE FROM devices
+            WHERE (row_id, ${columnNames}) = ($1, ${ph})
+            `, [device.id, ...device.columns])
+
+        if (result.rowCount == 0) {
+            return "couldn't find the row to remove"
+        }
+    } catch (err: any) {
+        console.log(err)
+        return "error"
+    }
+    version++
+    return "success"
+}
 
 export async function editDevice(device: Row) {
 
