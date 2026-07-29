@@ -13,7 +13,7 @@ export interface Select {
 
 export function useSelect(
     updateSendState: (success: boolean, message: string) => void,
-    devices: Row[]
+    getFiltered: () => Row[]
 ): Select {
 
     const [idList, setIdList] = useState(new Set<number>)
@@ -41,7 +41,7 @@ export function useSelect(
             const start = Math.min(dragStartIndex, index);
             const end = Math.max(dragStartIndex, index);
 
-            const ids = devices.slice(start, end + 1).map(device => device.id)
+            const ids = getFiltered().slice(start, end + 1).map(device => device.id)
             if (ctrl) {
                 setIdList(prev => new Set([...prev, ...ids]))
             } else {

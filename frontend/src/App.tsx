@@ -4,9 +4,9 @@ import { useApp } from './context'
 import mag from "./assets/magg.svg";
 import plusw from "./assets/plusw.svg";
 import plusg from "./assets/plusg.svg";
+import send from "./assets/send.svg";
 import v from "./assets/v.svg";
-import { checkFilter } from './filters';
-import { Form, InputButton } from './Form';
+import { Form, InputButton, ReportDialog } from './Form';
 import type { Row } from '@cipher-report/shared/types';
 
 
@@ -14,8 +14,10 @@ import type { Row } from '@cipher-report/shared/types';
 function Row({ device, index }: { device: Row, index: number }) {
   const state = useApp()
 
+  const reported = device.columns[0] == "true"
+
   let name = ""
-  if (device.columns[0] == "true") {
+  if (reported) {
     name = "reported"
   }
 
@@ -34,9 +36,6 @@ function Row({ device, index }: { device: Row, index: number }) {
         } else if (e.button != 2 || !state.select.idList.has(device.id)) {
           state.select.click(device.id)
         }
-      }}
-      onMouseUp={() => {
-        state.select.updateDragged(false, -1)
       }}
       onMouseMove={(e) => state.select.drag(index, e.ctrlKey)}
     >
@@ -57,7 +56,16 @@ function Row({ device, index }: { device: Row, index: number }) {
               <img src={v} alt="v" width={15} />
 
             ) : (
-              col
+              <>
+                {(state.columns[index].name != "serial_number" ||
+                  state.tabMode != 'report' ||
+                  reported)
+                  ?
+                  col
+                  :
+                  ".".repeat(col.length)
+                }
+              </>
             )}
           </td>
         )).reverse()
@@ -70,14 +78,12 @@ function Rows() {
   const state = useApp()
   return (
     <>
-      {state.devices
-        .filter((device => checkFilter(device.columns, state.filters)))
-        .map((device, index) => (device.id == state.edit.id
-          ?
-          <Form key={device.id} formType='edit'></Form>
-          :
-          < Row key={device.id} index={index} device={device} ></Row >
-        ))
+      {state.getFiltered().map((device, index) => ((device.id == state.edit.id && !state.removeDialogOn)
+        ?
+        <Form key={device.id} formType='edit'></Form>
+        :
+        < Row key={device.id} index={index} device={device} ></Row >
+      ))
       }
     </>
   )
@@ -201,6 +207,7 @@ function Logs() {
     setShow(true)
     const timer = setTimeout(() => {
       setShow(false)
+      state.updateSendState(true, "")
     }, 2000);
     return () => clearTimeout(timer);
   }, [state.sendMessage]);
@@ -300,12 +307,15 @@ function RightClickMenu() {
 function RemoveDialog() {
   const state = useApp()
 
+  if (!state.removeDialogOn.val)
+    return (<></>)
+
   const devices = state.devices.filter(device => state.select.idList.has(device.id))
 
   return (
     <div className='back-drop v center'>
       <div className='h center'>
-        <div className='remove-dialog'>
+        <div className='dialog'>
           <div>:האם אתה רוצה להסיר את השורות</div>
 
           <div className='h center dialog-table'>
@@ -349,6 +359,59 @@ function RemoveDialog() {
   )
 }
 
+function ReportBar() {
+  const state = useApp()
+  const [value, setValue] = useState("")
+  const [pressed, setPressed] = useState(false);
+
+
+  if (state.tabMode != 'report')
+    return (<></>)
+
+  return (
+    <div>
+      <div className='h center report-bar'>
+        <input
+          className='report-input'
+          type="text"
+          ref={(e) => { state.report.reportRef.current = e }}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Enter"
+          list='options'
+          onKeyDown={(e) => {
+            if (e.key == "Enter" && value != "") {
+              setPressed(true);
+              setTimeout(() => setPressed(false), 100);
+              state.report.sendReport(value.trim())
+              setValue("")
+            }
+          }}
+        />
+
+        <div
+          className={`send-icon h center ${pressed && 'click'}`}
+          onMouseDown={() => {
+            if (value != "") {
+              state.report.sendReport(value.trim())
+              setValue("")
+            }
+          }}
+        >
+          <img
+            src={send}
+            alt="send"
+            width="30"
+          />
+        </div>
+      </div>
+      <div style={{ height: 30 }}>
+        <Logs></Logs>
+      </div>
+    </div >
+  )
+}
+
 function App() {
 
   const state = useApp()
@@ -367,19 +430,25 @@ function App() {
           state.select.reset()
         }
       }}
+      onMouseUp={() => {
+        state.select.updateDragged(false, -1)
+      }}
     >
       <Tabs></Tabs>
       <SearchBar></SearchBar>
+      <ReportBar></ReportBar>
       <div className='h center'>
         <Table></Table>
       </div>
       <InputButton input={state.insertForm} name='הוסף' visible={true}></InputButton>
       <InputButton input={state.edit.form} name='שנה' visible={state.edit.changed}></InputButton>
       <Logs></Logs>
+
+      {/* absolute elements*/}
       <RightClickMenu></RightClickMenu>
-      {state.removeDialogOn.val &&
-        <RemoveDialog></RemoveDialog>
-      }
+      <RemoveDialog></RemoveDialog>
+      <ReportDialog></ReportDialog>
+
     </div >
   )
 }

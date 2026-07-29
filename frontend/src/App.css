@@ -375,12 +375,12 @@ th:last-child {
   background-color: #afafaf;
 }
 
-.remove-dialog {
+.dialog {
   padding: 10px;
   background-color: aliceblue;
   border-radius: 30px;
   box-shadow: 5px 5px 5px 1px rgba(0, 0, 0, 0.474);
-  /* border: rgb(103, 103, 103) solid 1px; */
+  color: black;
 }
 
 .back-drop {
@@ -388,10 +388,60 @@ th:last-child {
   inset: 0;
   display: flex;
   z-index: 2;
-  /* background-color: #0011ff95; */
 }
 
 .dialog-table {
   max-height: 500px;
   overflow: scroll;
+}
+
+.report-bar {
+  padding: 5px;
+}
+
+.report-input {
+  font-size: 100%;
+  padding: 10px;
+  outline: 0;
+  color: var(--accent-fg);
+  background-color: var(--bg-surface);
+  /* background-color: var(--header-fg); */
+  border: 2px solid var(--header-bg);
+  border-radius: 20px;
+  font-weight: 500;
+  width: 200px;
+}
+
+.send-icon {
+  background-color: var(--header-bg);
+  padding: 10px;
+  border-radius: 100%;
+  padding-left: 13px;
+  margin-left: 10px;
+  transition: transform 0.05s, box-shadow 0.1s ease;
+}
+
+.send-icon:active {
+  transform: scale(95%);
+}
+
+.send-icon.click {
+  transform: scale(95%);
+}
+
+.confirm-input {
+  text-align: right;
+}
+
+.confirm-input input {
+  background-color: transparent;
+
+  font-size: 100%;
+  padding: 10px;
+  outline: 0;
+  color: var(--accent-fg);
+  border: 2px solid var(--header-bg);
+  border-radius: 10px;
+  font-weight: 500;
+  width: 200px;
 }

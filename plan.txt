@@ -10,3 +10,7 @@ features to implement:
     8. security
     9. mobile design
     10. custom table engine
+
+tasks:
+    1. make insert button visible
+    2. fix enter listener on edit

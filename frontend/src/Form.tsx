@@ -172,7 +172,6 @@ export function InputButton({ input, name, visible }: { input: InputForm, name: 
                 setFocused(false)
                 if (e.relatedTarget?.id != "edit-form") {
                     edit.reset()
-
                 }
             }}>
             <div className={(input.focused || focused) && visible ? '' : 'hidden'}>
@@ -189,6 +188,71 @@ export function InputButton({ input, name, visible }: { input: InputForm, name: 
                     >
                         {name}
                     </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export function ReportDialog() {
+    const state = useApp()
+
+    if (!state.report.dialogOn)
+        return
+
+    return (
+        <div
+            className='back-drop v center'
+            onKeyDown={(e) => {
+                if (e.key == "Enter" && state.edit.form.sendButtonOn) {
+                    state.report.updateDialogOn(false)
+                    state.report.reportRef.current?.focus()
+                }
+            }}
+        >
+            <div className='h center'>
+                <div className='dialog v center'>
+                    <h3>וודא שהמידע עדכני</h3>
+                    <Confirm></Confirm>
+                </div>
+            </div>
+        </div >
+    )
+}
+
+function Confirm() {
+    const state = useApp()
+    const input = state.edit.form
+
+    useEffect(() => {
+        input.checkInput()
+        input.updateOptions(input.pointer, state.devices)
+    }, [input.inputs, input.pointer]);
+
+    return (
+        <div className="v">
+            {input.inputs.map((_, index) => (
+                <div key={index}>
+                    {state.columns[index].dynamic &&
+                        <div className='confirm-input'>
+                            <div>: {state.columns[index].uiName}</div>
+                            <TextInput id={`confirm-form`} index={index} input={input}></TextInput>
+                        </div>
+                    }
+                </div>
+            ))
+            }
+            <div className={input.legal ? 'success' : 'error'}>{input.message}</div>
+            <div className='h center'>
+                <div
+                    className={`button ${(input.sendButtonOn) && 'focused'}`}
+                    onClick={() => {
+                        input.pressButton()
+                        state.report.updateDialogOn(false)
+                        state.report.reportRef.current?.focus()
+                    }}
+                >
+                    מעודכן
                 </div>
             </div>
         </div>

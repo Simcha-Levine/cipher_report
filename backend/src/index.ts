@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { editDevice, getDevices, insertNewDevice, removeDevice, version } from './queries.js'
+import { editDevice, getDevices, insertNewDevice, removeDevice, report, version } from './queries.js'
 import { cors } from "hono/cors"
 import type { Column, Row } from '@cipher-report/shared/types'
 
@@ -10,42 +10,49 @@ export const columns: Column[] = [
     name: 'reported',
     uiName: 'דווח',
     canBeEmpty: false,
+    dynamic: false,
   },
   {
     type: 'text',
     name: 'device_name',
     uiName: 'שם מכשיר',
     canBeEmpty: false,
+    dynamic: false,
   },
   {
     type: 'serial',
     name: 'serial_number',
     uiName: "'צ",
     canBeEmpty: false,
+    dynamic: false,
   },
   {
     type: 'text',
     name: 'association',
     uiName: 'שיוך',
     canBeEmpty: false,
+    dynamic: true,
   },
   {
     type: 'text',
     name: 'assignment',
     uiName: 'יעוד',
     canBeEmpty: false,
+    dynamic: true,
   },
   {
     type: 'text',
     name: 'location',
     uiName: 'מיקום',
     canBeEmpty: true,
+    dynamic: true,
   },
   {
     type: 'serial',
     name: 'vehicle_serial_number',
     uiName: "צ' רכב",
     canBeEmpty: true,
+    dynamic: true,
   },
 
   {
@@ -53,13 +60,14 @@ export const columns: Column[] = [
     name: 'connected_device',
     uiName: "מכשיר מחובר",
     canBeEmpty: true,
-
+    dynamic: true,
   },
   {
     type: 'text',
     name: 'comments',
     uiName: 'הערות',
     canBeEmpty: true,
+    dynamic: true,
   },
 
 
@@ -96,17 +104,19 @@ app.post("/insert_device", async (c) => {
 
 app.post("/edit_device", async (c) => {
   const body = await c.req.json<Row>();
-
   const result = await editDevice(body)
+  return c.json(result)
+})
 
+app.post("/report", async (c) => {
+  const body = await c.req.json<string>();
+  const result = await report(body)
   return c.json(result)
 })
 
 app.post("/remove_device", async (c) => {
   const body = await c.req.json<Row>();
-
   const result = await removeDevice(body)
-
   return c.json(result)
 })
 

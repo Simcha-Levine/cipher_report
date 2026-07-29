@@ -41,6 +41,8 @@ export function useEdit(
     }
 
     async function sendEdit(body: string[]) {
+        if (!changed)
+            return
         updateSendState(true, "")
 
         const response = await fetch('http://localhost:3000/edit_device', {

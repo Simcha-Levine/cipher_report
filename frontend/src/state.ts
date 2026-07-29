@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react"
 import type { Column, Row } from "@cipher-report/shared/types"
 import { useInputForm, type InputForm } from "./inputForm"
-import { useFilters, type Filters } from "./filters"
+import { checkFilter, useFilters, type Filters } from "./filters"
 import { useEdit, type Edit } from "./edit"
 import { useRightClickMenu, type RightClickMenu } from "./rightClickMenu"
 import { useSelect, type Select } from "./select"
 import { useRemember, type Remember } from "./remember"
+import { useReport, type Report } from "./report"
+
 
 export interface State {
     columns: Column[]
@@ -17,6 +19,7 @@ export interface State {
     insertForm: InputForm
     edit: Edit
     removeDialogOn: Remember<boolean>
+    report: Report,
     rightClickMenu: RightClickMenu
     select: Select
     tabMode: string
@@ -25,6 +28,8 @@ export interface State {
     updateSort(index: number): void
     updateTabMode(newMode: string): void
     sendRemove(device: Row[]): void
+    updateSendState(success: boolean, message: string): void
+    getFiltered(): Row[]
 }
 
 export function useAppState(): State {
@@ -38,10 +43,11 @@ export function useAppState(): State {
     const insertForm = useInputForm(columns, sendInsert)
     const edit = useEdit(columns, updateSendState)
     const rightClickMenu = useRightClickMenu()
-    const select = useSelect(updateSendState, devices)
+    const select = useSelect(updateSendState, getFiltered)
     const [tabMode, setTabMode] = useState("list")
-    // const [removeDialogOn, setRemoveDialogOn] = useState()
     const removeDialogOn = useRemember(false)
+    const report = useReport(edit, columns, devices, updateSendState)
+
 
 
 
@@ -62,22 +68,30 @@ export function useAppState(): State {
         }
     }
 
-    function updateSort(index: number) {
-        setSelectedHeader(index)
-        sortColumns(index)
+    function getFiltered(): Row[] {
+        return devices.filter((device => checkFilter(device.columns, filters)))
     }
 
-    function compareStrings(a: string, b: string) {
+    function updateSort(index: number) {
+        setSelectedHeader(index)
+        sortDevices(index)
+    }
+
+    function compareStrings(a: string, b: string, desc: boolean) {
         if (a === "" && b === "") return 0;
         if (a === "") return 1;  // a goes after b
         if (b === "") return -1; // b goes after a
 
+        if (desc) return b.localeCompare(a)
         return a.localeCompare(b);
     }
 
-    function sortColumns(index: number) {
+    function sortDevices(index: number) {
         setDevices(prev => [...prev].sort((a, b) => {
-            return compareStrings(a.columns[index], b.columns[index])
+            const desc =
+                (a.columns[index] == "true" || a.columns[index] == "false") &&
+                (b.columns[index] == "true" || b.columns[index] == "false")
+            return compareStrings(a.columns[index], b.columns[index], desc)
         }))
     }
 
@@ -105,7 +119,7 @@ export function useAppState(): State {
             if (data) {
                 setVersion(data.version)
                 setDevices(data.devices)
-                sortColumns(selected_header)
+                sortDevices(selected_header)
             }
         } catch {
             console.log("nothing")
@@ -174,11 +188,14 @@ export function useAppState(): State {
         select,
         tabMode,
         removeDialogOn,
+        report,
         loadColumns,
         loadDevices,
         updateSort,
         updateTabMode,
         sendRemove,
+        updateSendState,
+        getFiltered,
     }
 
 }

@@ -1,6 +1,6 @@
 import { Pool } from 'pg'
 import "dotenv/config"
-import { evaluateRow, type Column, type Row } from "@cipher-report/shared/types"
+import { evaluateRow, type Column, type ReportResult, type Row } from "@cipher-report/shared/types"
 import { columns } from './index.js'
 
 export let version = 0
@@ -86,6 +86,29 @@ export async function removeDevice(device: Row) {
     return "success"
 }
 
+export async function report(serial: string): Promise<ReportResult> {
+    let id = 0
+    try {
+        const result = await pool.query(`
+            UPDATE devices 
+            SET reported = true 
+            WHERE serial_number = $1
+            RETURNING row_id
+        `, [serial])
+
+        if (result.rowCount && result.rowCount > 0) {
+            id = result.rows[0].row_id;
+        } else {
+            return { success: false, message: "doesn't exist", id }
+        }
+    } catch (err: any) {
+        return { success: false, message: "error", id }
+    }
+    version++
+    return { success: true, message: "success", id }
+
+}
+
 export async function editDevice(device: Row) {
 
     const evaluate = evaluateRow(device.columns, columns)
@@ -111,7 +134,23 @@ export async function editDevice(device: Row) {
         }
         return "error"
     }
+    console.log(device)
     version++
     return "success"
 }
+
+async function resetReports() {
+    try {
+        await pool.query(
+            `UPDATE devices
+             SET reported = false
+            `
+        );
+    } catch (err: any) {
+        return "error"
+    }
+    version++
+}
+
+resetReports()
 

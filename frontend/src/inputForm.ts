@@ -74,10 +74,10 @@ export function useInputForm(columns: Column[], send: (inputs: string[]) => void
                 send(inputs)
                 setSendButtonOn(false)
             } else if (pointer + 1 == inputs.length && result) {
-                setPointer(pointer + 1)
+                setPointer(Math.min(pointer + 1, inputs.length))
                 setSendButtonOn(true)
             } else {
-                setPointer(pointer + 1)
+                setPointer(Math.min(pointer + 1, inputs.length))
             }
         } else if (key == "Shift" && pointer > 0) {
             setPointer(pointer - 1)
