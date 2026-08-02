@@ -51,19 +51,17 @@ const pool = new Pool(
 
 // }
 export async function login(user: UserLogin) {
-    interface User extends UserData {
+    interface Data {
         password: string
+        name: string
+        id: number
     }
-    const result = await pool.query<User>(
+    const result = await pool.query<Data>(
         `
         SELECT 
             id,
             name,
             password,
-            association,
-            phone_number as "phoneNumber", 
-            authenticated,
-            admin
         FROM users
         WHERE name = $1
         `,
@@ -71,15 +69,35 @@ export async function login(user: UserLogin) {
     )
 
     if (result.rowCount != 1) {
-        return { success: "name or password are wrong 1", data: null }
+        return { success: "name or password are wrong 1", id: -1 }
     }
-    const { password, ...userData } = result.rows[0];
+    // const { password, ...userData } = result.rows[0];
 
     if (await argon2.verify(result.rows[0].password, user.password)) {
-        return { success: "success", data: userData }
+        return { success: "success", id: result.rows[0].id }
     }
 
-    return { success: "name or   password are wrong 2", data: null }
+    return { success: "name or   password are wrong 2", id: -1 }
+}
+
+export async function getUserData(id: number): Promise<UserData | null> {
+    const result = await pool.query<UserData>(
+        `SELECT
+            id,
+            name,
+            association,
+            phone_number AS "phoneNumber",
+            admin,
+            authenticated
+        FROM users
+        WHERE id = $1
+        `, [id])
+
+    if (result.rowCount != 1) {
+        return null
+    }
+
+    return result.rows[0]
 }
 
 export async function getDevices() {

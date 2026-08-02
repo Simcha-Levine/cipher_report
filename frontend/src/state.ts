@@ -164,8 +164,11 @@ export function useAppState(): State {
     }
 
     async function httpRequest(path: string, body: any = {}, method = "post"): Promise<Response> {
+
+        const fullPath = `http://localhost:3000/${path}`
+
         if (method == "post")
-            return fetch(`http://localhost:3000/${path}`, {
+            return fetch(fullPath, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -174,7 +177,7 @@ export function useAppState(): State {
                 body: JSON.stringify(body)
             })
         else
-            return fetch(`http://localhost:3000/${path}`, {
+            return fetch(fullPath, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

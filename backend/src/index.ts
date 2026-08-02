@@ -91,8 +91,11 @@ app.post('/login', async (c) => {
 
   console.log("first" + JWT_SECRET)
 
-  if (result.success == "success" && result.data) {
-    const token = await sign(result.data, JWT_SECRET)
+  if (result.success == "success" && result.id != -1) {
+    const token = await sign({
+      exp: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes
+      id: result.id
+    }, JWT_SECRET)
 
     return c.json({ success: result.success, token: token })
   }

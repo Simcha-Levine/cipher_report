@@ -12,5 +12,5 @@ features to implement:
     10. custom table engine
 
 tasks:
-    1. make insert button visible
-    2. fix enter listener on edit
+    1. integrate better-auth 
+    2. make insert button visible
