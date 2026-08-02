@@ -313,6 +313,11 @@ th:last-child {
   display: none;
 }
 
+.hidden-row {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .tabs-header {
   /* background-color: var(--bg-surface); */
   border-bottom: solid 5px var(--header-bg);
@@ -431,6 +436,7 @@ th:last-child {
 
 .confirm-input {
   text-align: right;
+  color: var(--accent-fg);
 }
 
 .confirm-input input {
@@ -444,4 +450,9 @@ th:last-child {
   border-radius: 10px;
   font-weight: 500;
   width: 200px;
+}
+
+.login {
+  padding-left: 100px;
+  padding-right: 100px;
 }

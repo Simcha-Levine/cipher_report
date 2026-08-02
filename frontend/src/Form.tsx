@@ -50,7 +50,7 @@ function CheckBox({ index, input, id }: { index: number, input: InputForm, id: s
                 if (e.code == "Space")
                     change()
                 else
-                    input.handleEnter(e.key)
+                    input.handleEnter(e.key, e.ctrlKey)
             }}
         >
             <div
@@ -93,7 +93,8 @@ function TextInput({ index, input, id }: { index: number, input: InputForm, id: 
                     }
                 }}
                 list='options'
-                onKeyDown={(e) => input.handleEnter(e.key)} />
+                onKeyDown={(e) => input.handleEnter(e.key, e.ctrlKey)}
+            />
 
             <datalist id="options" key={`options${index}`}>
                 {input.options.map((v) => (
@@ -105,7 +106,7 @@ function TextInput({ index, input, id }: { index: number, input: InputForm, id: 
 }
 
 
-export function Form({ formType }: { formType: string }) {
+export function Form({ formType, show }: { formType: string, show: boolean }) {
 
     const state = useApp()
     const input = (formType == "insert") ? state.insertForm : state.edit.form
@@ -126,7 +127,7 @@ export function Form({ formType }: { formType: string }) {
     return (
         <>
             <tr
-                className='bottom_bar'
+                className={`bottom_bar ${!show && 'hidden-row'}`}
                 onFocus={() => {
                     input.setFocused(true)
                 }}

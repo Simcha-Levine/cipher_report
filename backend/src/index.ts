@@ -1,8 +1,10 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { editDevice, getDevices, insertNewDevice, removeDevice, report, version } from './queries.js'
+import { editDevice, getDevices, insertNewDevice, login, removeDevice, report, version } from './queries.js'
 import { cors } from "hono/cors"
-import type { Column, Row } from '@cipher-report/shared/types'
+import type { Column, Row, UserLogin } from '@cipher-report/shared/types'
+import { jwt, sign } from 'hono/jwt'
+import type { SignatureKey } from 'hono/utils/jwt/jws'
 
 export const columns: Column[] = [
   {
@@ -76,11 +78,32 @@ export const columns: Column[] = [
 const app = new Hono()
 app.use("*", cors())
 
-app.get('/columns', async (c) => {
+const JWT_SECRET = process.env.JWT_SECRET!;
+
+app.use(
+  "/app/*",
+  jwt({ secret: JWT_SECRET, alg: "HS256" })
+);
+
+app.post('/login', async (c) => {
+  const body = await c.req.json<UserLogin>();
+  const result = await login(body)
+
+  console.log("first" + JWT_SECRET)
+
+  if (result.success == "success" && result.data) {
+    const token = await sign(result.data, JWT_SECRET)
+
+    return c.json({ success: result.success, token: token })
+  }
+  return c.json({ success: result.success, token: "" })
+})
+
+app.get('/app/columns', async (c) => {
   return c.json(columns)
 })
 
-app.get('/devices', async (c) => {
+app.get('/app/devices', async (c) => {
   const uv = Number(c.req.query("version"));
 
   if (uv != version) {
@@ -94,7 +117,7 @@ app.get('/devices', async (c) => {
 
 })
 
-app.post("/insert_device", async (c) => {
+app.post("/app/insert_device", async (c) => {
   const body = await c.req.json<string[]>();
 
   const result = await insertNewDevice(body)
@@ -102,25 +125,25 @@ app.post("/insert_device", async (c) => {
   return c.json(result)
 })
 
-app.post("/edit_device", async (c) => {
+app.post("/app/edit_device", async (c) => {
   const body = await c.req.json<Row>();
   const result = await editDevice(body)
   return c.json(result)
 })
 
-app.post("/report", async (c) => {
+app.post("/app/report", async (c) => {
   const body = await c.req.json<string>();
   const result = await report(body)
   return c.json(result)
 })
 
-app.post("/remove_device", async (c) => {
+app.post("/app/remove_device", async (c) => {
   const body = await c.req.json<Row>();
   const result = await removeDevice(body)
   return c.json(result)
 })
 
-app.post("/remove_devices", async (c) => {
+app.post("/app/remove_devices", async (c) => {
   const body = await c.req.json<Row[]>();
 
   let val = "success"

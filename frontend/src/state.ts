@@ -23,6 +23,8 @@ export interface State {
     rightClickMenu: RightClickMenu
     select: Select
     tabMode: string
+    loggedIn: Remember<boolean>
+    token: Remember<string>
     loadColumns(): Promise<void>
     loadDevices(): Promise<void>
     updateSort(index: number): void
@@ -30,6 +32,8 @@ export interface State {
     sendRemove(device: Row[]): void
     updateSendState(success: boolean, message: string): void
     getFiltered(): Row[]
+    setLogin(token: string): void
+    httpRequest(path: string, body: any): Promise<Response>
 }
 
 export function useAppState(): State {
@@ -41,24 +45,31 @@ export function useAppState(): State {
     const [selected_header, setSelectedHeader] = useState<number>(8)
     const filters = useFilters()
     const insertForm = useInputForm(columns, sendInsert)
-    const edit = useEdit(columns, updateSendState)
+    const edit = useEdit(columns, updateSendState, httpRequest)
     const rightClickMenu = useRightClickMenu()
-    const select = useSelect(updateSendState, getFiltered)
+    const select = useSelect(updateSendState, getFiltered, httpRequest)
     const [tabMode, setTabMode] = useState("list")
     const removeDialogOn = useRemember(false)
-    const report = useReport(edit, columns, devices, updateSendState)
+    const report = useReport(edit, columns, devices, updateSendState, httpRequest)
+    const loggedIn = useRemember(false)
+    const token = useRemember("")
 
 
-
+    function setLogin(nToken: string) {
+        loggedIn.set(true)
+        token.set(nToken)
+    }
 
 
     //intervals
     useEffect(() => {
+        if (!loggedIn.val) return
+
         loadDevices()
         const interval = setInterval(loadDevices, 1000);
 
         return () => clearInterval(interval);
-    })
+    }, [loggedIn])
 
     function updateTabMode(newMode: string) {
         if (newMode != tabMode) {
@@ -96,12 +107,8 @@ export function useAppState(): State {
     }
 
     async function loadColumns() {
-        const response = await fetch('http://localhost:3000/columns', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
+        const response = await httpRequest('app/columns', {}, "get")
+
         const cols: Column[] = await response.json()
         await setColumns(cols)
         insertForm.setInputsEmpty(cols)
@@ -109,12 +116,7 @@ export function useAppState(): State {
 
     async function loadDevices() {
         try {
-            const response = await fetch(`http://localhost:3000/devices?version=${version}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
+            const response = await httpRequest(`app/devices?version=${version}`, {}, "get")
             const data: null | { version: number, devices: Row[] } = await response.json()
             if (data) {
                 setVersion(data.version)
@@ -129,14 +131,7 @@ export function useAppState(): State {
 
     async function sendInsert(body: string[]) {
         setSendMessage("")
-
-        const response = await fetch('http://localhost:3000/insert_device', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        })
+        const response = await httpRequest('app/insert_device', body)
 
         const message: string = await response.json()
         if (message == "success") {
@@ -157,13 +152,7 @@ export function useAppState(): State {
     async function sendRemove(devices: Row[]) {
         updateSendState(true, "")
 
-        const response = await fetch('http://localhost:3000/remove_devices', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(devices)
-        })
+        const response = await httpRequest('app/remove_devices', devices)
 
         const message: string = await response.json()
         if (message == "success") {
@@ -172,6 +161,26 @@ export function useAppState(): State {
             updateSendState(false, "ארעה תקלה")
 
         }
+    }
+
+    async function httpRequest(path: string, body: any = {}, method = "post"): Promise<Response> {
+        if (method == "post")
+            return fetch(`http://localhost:3000/${path}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token.val}`,
+                },
+                body: JSON.stringify(body)
+            })
+        else
+            return fetch(`http://localhost:3000/${path}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token.val}`,
+                }
+            })
     }
 
 
@@ -189,6 +198,8 @@ export function useAppState(): State {
         tabMode,
         removeDialogOn,
         report,
+        loggedIn,
+        token,
         loadColumns,
         loadDevices,
         updateSort,
@@ -196,6 +207,8 @@ export function useAppState(): State {
         sendRemove,
         updateSendState,
         getFiltered,
+        setLogin,
+        httpRequest
     }
 
 }

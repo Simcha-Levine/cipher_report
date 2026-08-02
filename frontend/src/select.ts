@@ -13,7 +13,8 @@ export interface Select {
 
 export function useSelect(
     updateSendState: (success: boolean, message: string) => void,
-    getFiltered: () => Row[]
+    getFiltered: () => Row[],
+    httpRequest: (path: string, body: any) => Promise<Response>
 ): Select {
 
     const [idList, setIdList] = useState(new Set<number>)
@@ -78,13 +79,8 @@ export function useSelect(
     async function sendRemove() {
         updateSendState(true, "")
 
-        const response = await fetch('http://localhost:3000/remove_devices', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ ids: [...idList] })
-        })
+        const response = await httpRequest('app/remove_devices', { ids: [...idList] })
+
 
         const message: string = await response.json()
         if (message == "success") {

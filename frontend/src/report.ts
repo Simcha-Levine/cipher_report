@@ -13,7 +13,8 @@ export function useReport(
     edit: Edit,
     columns: Column[],
     devices: Row[],
-    updateSendState: (success: boolean, message: string) => void
+    updateSendState: (success: boolean, message: string) => void,
+    httpRequest: (path: string, body: any) => Promise<Response>
 ): Report {
     const [dialogOn, setDialogOn] = useState(false)
     const reportRef = useRef<(HTMLInputElement | null)>(null);
@@ -43,13 +44,8 @@ export function useReport(
     async function sendReport(serial: string) {
         updateSendState(true, "")
 
-        const response = await fetch('http://localhost:3000/report', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(serial)
-        })
+        const response = await httpRequest('app/report', serial)
+
 
         const result: ReportResult = await response.json()
         if (result.message == "success") {

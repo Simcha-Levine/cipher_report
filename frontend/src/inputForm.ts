@@ -13,7 +13,7 @@ export interface InputForm {
     updateOptions(index: number, devices: Row[]): void
     checkInput(): void
     setPointer: React.Dispatch<React.SetStateAction<number>>
-    handleEnter(key: string): void
+    handleEnter(key: string, ctrl: boolean): void
     setInputsEmpty(cols: Column[]): void
     setInputs: React.Dispatch<React.SetStateAction<string[]>>
     setSendButtonOn: React.Dispatch<React.SetStateAction<boolean>>
@@ -66,21 +66,24 @@ export function useInputForm(columns: Column[], send: (inputs: string[]) => void
             return false
         }
     }
-    function handleEnter(key: string) {
+    function handleEnter(key: string, ctrl: boolean) {
         const result = checkInput()
 
         if (key == "Enter") {
-            if (sendButtonOn) {
-                send(inputs)
-                setSendButtonOn(false)
-            } else if (pointer + 1 == inputs.length && result) {
-                setPointer(Math.min(pointer + 1, inputs.length))
-                setSendButtonOn(true)
+            if (ctrl) {
+                if (pointer > 0)
+                    setPointer(pointer - 1)
             } else {
-                setPointer(Math.min(pointer + 1, inputs.length))
+                if (sendButtonOn) {
+                    send(inputs)
+                    setSendButtonOn(false)
+                } else if (pointer + 1 == inputs.length && result) {
+                    setPointer(Math.min(pointer + 1, inputs.length))
+                    setSendButtonOn(true)
+                } else {
+                    setPointer(Math.min(pointer + 1, inputs.length))
+                }
             }
-        } else if (key == "Shift" && pointer > 0) {
-            setPointer(pointer - 1)
         }
     }
 

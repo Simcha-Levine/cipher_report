@@ -19,4 +19,26 @@ export interface ErrorMessage {
     status: number;
 }
 export declare function evaluateRow(row: string[], columns: Column[]): true | ErrorMessage;
+export interface UserRegister {
+    name: string;
+    password: string;
+    association: string;
+    phoneNumber: string;
+}
+export interface UserLogin {
+    name: string;
+    password: string;
+}
+export interface LoginResult {
+    success: string;
+    token: string;
+}
+export interface UserData {
+    id: number;
+    name: string;
+    association: string;
+    phoneNumber: string;
+    admin: boolean;
+    authenticated: boolean;
+}
 //# sourceMappingURL=types.d.ts.map
