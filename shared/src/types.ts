@@ -60,28 +60,28 @@ export function evaluateRow(row: string[], columns: Column[]): true | ErrorMessa
 }
 
 
-export interface UserRegister {
-    name: string,
-    password: string
-    association: string
-    phoneNumber: string
-}
+// export interface UserRegister {
+//     name: string,
+//     password: string
+//     association: string
+//     phoneNumber: string
+// }
 
-export interface UserLogin {
-    name: string,
-    password: string
-}
+// export interface UserLogin {
+//     name: string,
+//     password: string
+// }
 
-export interface LoginResult {
-    success: string,
-    token: string
-}
+// export interface LoginResult {
+//     success: string,
+//     token: string
+// }
 
-export interface UserData {
-    id: number,
+export interface UserInfo {
     name: string,
-    association: string,
-    phoneNumber: string,
-    admin: boolean,
-    authenticated: boolean
+    email: string
+    // association: string,
+    // phoneNumber: string,
+    // admin: boolean,
+    // authenticated: boolean
 }

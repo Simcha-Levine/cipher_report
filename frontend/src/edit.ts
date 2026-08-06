@@ -13,7 +13,7 @@ export interface Edit {
 export function useEdit(
     columns: Column[],
     updateSendState: (success: boolean, message: string) => void,
-    httpRequest: (path: string, body: any) => Promise<Response>
+    httpRequest: (path: string, body: any, method: "post" | "get") => Promise<Response>
 ): Edit {
     const form = useInputForm(columns, sendEdit)
     const [id, setId] = useState(-1)
@@ -46,7 +46,7 @@ export function useEdit(
             return
         updateSendState(true, "")
 
-        const response = await httpRequest('app/edit_device', { id, columns: body })
+        const response = await httpRequest('app/edit_device', { id, columns: body }, 'post')
 
         const message: string = await response.json()
         if (message == "success") {

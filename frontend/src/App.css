@@ -318,11 +318,30 @@ th:last-child {
   pointer-events: none;
 }
 
-.tabs-header {
+.tabs-header-con {
   /* background-color: var(--bg-surface); */
   border-bottom: solid 5px var(--header-bg);
+  /*padding-left: 5px;*/
+  /*padding-top: 10px;*/
+}
+
+.tabs-header {
+  /* background-color: var(--bg-surface); */
+  /*border-bottom: solid 5px var(--header-bg);*/
   padding-left: 5px;
   padding-top: 10px;
+}
+
+.user-icon {
+  width: 50px;
+  height: 50px;
+  background: red;
+  border-radius: 50%;
+}
+
+.user-icon-con {
+  margin-left: auto;
+  padding-right: 5px;
 }
 
 .tab {
@@ -455,4 +474,27 @@ th:last-child {
 .login {
   padding-left: 100px;
   padding-right: 100px;
+}
+
+.user-info {
+  position: absolute;
+  background-color: aliceblue;
+  width: 300px;
+  border: 1px black solid;
+  border-radius: 10px;
+  margin-top: 100px;
+  margin-left: -300px;
+  box-shadow: 5px 5px 5px 1px rgba(0, 0, 0, 0.474);
+  overflow: hidden;
+  z-index: 5;
+}
+
+.user-menu {
+  padding: 3px;
+  text-align: right;
+  border: rgb(142, 142, 142) solid 0.5px;
+}
+
+.gray:hover {
+  background-color: #87877f;
 }

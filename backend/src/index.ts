@@ -1,10 +1,9 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { editDevice, getDevices, insertNewDevice, login, removeDevice, report, version } from './queries.js'
+import { editDevice, getDevices, insertNewDevice, removeDevice, report, version } from './queries.js'
 import { cors } from "hono/cors"
-import type { Column, Row, UserLogin } from '@cipher-report/shared/types'
-import { jwt, sign } from 'hono/jwt'
-import type { SignatureKey } from 'hono/utils/jwt/jws'
+import type { Column, Row, UserInfo } from '@cipher-report/shared/types'
+import { auth } from './auth.js'
 
 export const columns: Column[] = [
   {
@@ -75,31 +74,50 @@ export const columns: Column[] = [
 
 ]
 
-const app = new Hono()
-app.use("*", cors())
-
-const JWT_SECRET = process.env.JWT_SECRET!;
+const app = new Hono<{
+  Variables: {
+    user: typeof auth.$Infer.Session.user | null;
+    session: typeof auth.$Infer.Session.session | null
+  }
+}>();
 
 app.use(
-  "/app/*",
-  jwt({ secret: JWT_SECRET, alg: "HS256" })
+  "*",
+  cors({
+    origin: "http://localhost:5173",
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["POST", "GET", "OPTIONS"],
+    exposeHeaders: ["Content-Length"],
+    maxAge: 600,
+    credentials: true,
+  }),
 );
 
-app.post('/login', async (c) => {
-  const body = await c.req.json<UserLogin>();
-  const result = await login(body)
+app.use("/app/*", async (c, next) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
-  console.log("first" + JWT_SECRET)
-
-  if (result.success == "success" && result.id != -1) {
-    const token = await sign({
-      exp: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes
-      id: result.id
-    }, JWT_SECRET)
-
-    return c.json({ success: result.success, token: token })
+  if (!session) {
+    return c.text("Unauthorized", 401);
   }
-  return c.json({ success: result.success, token: "" })
+
+  c.set("user", session.user);
+  c.set("session", session.session);
+  await next();
+});
+
+app.on(["POST", "GET"], "/api/auth/*", (c) => {
+  return auth.handler(c.req.raw);
+});
+
+
+app.get('/app/user_info', async (c) => {
+  const user = c.get('user')!
+  const info: UserInfo = {
+    name: user.name,
+    email: user.email
+  }
+
+  return c.json(info)
 })
 
 app.get('/app/columns', async (c) => {

@@ -4,11 +4,13 @@ import { useApp } from './context'
 import mag from "./assets/magg.svg";
 import plusw from "./assets/plusw.svg";
 import plusg from "./assets/plusg.svg";
+import userIcon from "./assets/user.svg";
 import send from "./assets/send.svg";
 import v from "./assets/v.svg";
 import { Form, InputButton, ReportDialog } from './Form';
-import type { Row } from '@cipher-report/shared/types';
+import type { Row, UserInfo } from '@cipher-report/shared/types';
 import type { State } from './state';
+import { authClient } from './client-auth';
 
 
 
@@ -237,17 +239,67 @@ function Tabs() {
     ]
 
     return (
-        <div className='h tabs-header'>
+        <div className='h tabs-header-con'>
+            <div className='h tabs-header'>
 
-            {tabs.map((e) => (
+                {tabs.map((e) => (
+                    <div
+                        key={e.name}
+                        className={`tab ${state.tabMode == e.name && 'selected'}`}
+                        onMouseDown={() => { state.updateTabMode(e.name) }}
+                    >{e.ui}</div>
+                ))
+                }
+            </div >
+            <UserIcon></UserIcon>
+        </div>
+    )
+}
+
+function UserIcon() {
+    const state = useApp()
+    const [show, setShow] = useState(false)
+    const [user, setUser] = useState<UserInfo>({ name: "", email: "" })
+
+    useEffect(() => {
+        async function getUserInfo() {
+            const response = await state.httpRequest("app/user_info", {}, 'get')
+            const userInfo: UserInfo = await response.json()
+            setUser(userInfo)
+        }
+        if (show) {
+            getUserInfo()
+        }
+    }, [show])
+
+    return (
+        <div className='user-icon-con v center'>
+            <div
+                className={`user-info ${!show && 'hidden'}`}
+                onMouseLeave={() => setShow(false)}
+            >
+                <div className='user-menu'>{user.name} :שם</div>
+                <div className='user-menu'>{user.email} :אימיל</div>
                 <div
-                    key={e.name}
-                    className={`tab ${state.tabMode == e.name && 'selected'}`}
-                    onMouseDown={() => { state.updateTabMode(e.name) }}
-                >{e.ui}</div>
-            ))
-            }
-        </div >
+                    className='user-menu gray'
+                    onMouseDown={async () => {
+                        const { error } = await authClient.signOut();
+                        if (!error) {
+                            state.loggedIn.set(false)
+                        }
+                    }}
+                > {'<- יציאה'}
+                </div>
+            </div>
+            <img
+                src={userIcon}
+                alt="user"
+                width="50"
+                onMouseDown={() => {
+                    setShow(true)
+                }}
+            />
+        </div>
     )
 }
 

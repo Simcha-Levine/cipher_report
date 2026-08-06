@@ -1,13 +1,11 @@
 import { Pool } from 'pg'
 import "dotenv/config"
-import { evaluateRow, type Column, type LoginResult, type ReportResult, type Row, type UserData, type UserLogin, type UserRegister } from "@cipher-report/shared/types"
+import { evaluateRow, type ReportResult, type Row } from "@cipher-report/shared/types"
 import { columns } from './index.js'
-import argon2 from "argon2";
-
 
 export let version = 0
 
-const pool = new Pool(
+export const pool = new Pool(
     {
         host: process.env.DB_HOST,
         port: Number(process.env.DB_PORT),
@@ -16,89 +14,26 @@ const pool = new Pool(
         database: process.env.DB_NAME,
     }
 )
-// export async function register(data: UserRegister): Promise<LoginResult> {
 
-//     const result1 = await pool.query(
-//         `SELECT 1 FROM users WHERE name = $1 LIMIT 1`,
-//         [data.name]
-//     )
+// export async function getUserData(id: number): Promise<UserData | null> {
+//     const result = await pool.query<UserData>(
+//         `SELECT
+//             id,
+//             name,
+//             association,
+//             phone_number AS "phoneNumber",
+//             admin,
+//             authenticated
+//         FROM users
+//         WHERE id = $1
+//         `, [id])
 
-//     if ((result1.rowCount ?? 0) > 0) {
-//         return { success: "name is taken", id: -1 }
+//     if (result.rowCount != 1) {
+//         return null
 //     }
 
-//     const hash = await argon2.hash(data.password)
-
-//     try {
-//         const result2 = await pool.query<{ id: number }>(
-//             `
-//         INSERT INTO users (name, password, association, phone_number)
-//         VALUES ($1,$2,$3,$4)
-//         RETURNING id
-//         `,
-//             [data.name, hash, data.association, data.phoneNumber]
-//         )
-//         if (result2.rowCount != 1) {
-//             return { success: "failed", id: -1 }
-//         }
-//         return { success: "success", id: result2.rows[0].id }
-
-
-//     } catch (err: any) {
-//         console.log(err)
-//         return { success: "error", id: -1 }
-//     }
-
+//     return result.rows[0]
 // }
-export async function login(user: UserLogin) {
-    interface Data {
-        password: string
-        name: string
-        id: number
-    }
-    const result = await pool.query<Data>(
-        `
-        SELECT 
-            id,
-            name,
-            password,
-        FROM users
-        WHERE name = $1
-        `,
-        [user.name]
-    )
-
-    if (result.rowCount != 1) {
-        return { success: "name or password are wrong 1", id: -1 }
-    }
-    // const { password, ...userData } = result.rows[0];
-
-    if (await argon2.verify(result.rows[0].password, user.password)) {
-        return { success: "success", id: result.rows[0].id }
-    }
-
-    return { success: "name or   password are wrong 2", id: -1 }
-}
-
-export async function getUserData(id: number): Promise<UserData | null> {
-    const result = await pool.query<UserData>(
-        `SELECT
-            id,
-            name,
-            association,
-            phone_number AS "phoneNumber",
-            admin,
-            authenticated
-        FROM users
-        WHERE id = $1
-        `, [id])
-
-    if (result.rowCount != 1) {
-        return null
-    }
-
-    return result.rows[0]
-}
 
 export async function getDevices() {
 

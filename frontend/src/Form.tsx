@@ -10,7 +10,7 @@ function CheckBox({ index, input, id }: { index: number, input: InputForm, id: s
 
     const [focused, setFocused] = useState(false)
 
-    let ref = useRef<(HTMLDivElement | null)>(null);
+    const ref = useRef<(HTMLDivElement | null)>(null);
 
     useEffect(() => {
         if (input.pointer == index) {

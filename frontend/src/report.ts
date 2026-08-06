@@ -14,7 +14,7 @@ export function useReport(
     columns: Column[],
     devices: Row[],
     updateSendState: (success: boolean, message: string) => void,
-    httpRequest: (path: string, body: any) => Promise<Response>
+    httpRequest: (path: string, body: any, method: "post" | "get") => Promise<Response>
 ): Report {
     const [dialogOn, setDialogOn] = useState(false)
     const reportRef = useRef<(HTMLInputElement | null)>(null);
@@ -44,7 +44,7 @@ export function useReport(
     async function sendReport(serial: string) {
         updateSendState(true, "")
 
-        const response = await httpRequest('app/report', serial)
+        const response = await httpRequest('app/report', serial, "post")
 
 
         const result: ReportResult = await response.json()

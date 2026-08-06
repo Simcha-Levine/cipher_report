@@ -24,7 +24,6 @@ export interface State {
     select: Select
     tabMode: string
     loggedIn: Remember<boolean>
-    token: Remember<string>
     loadColumns(): Promise<void>
     loadDevices(): Promise<void>
     updateSort(index: number): void
@@ -32,14 +31,14 @@ export interface State {
     sendRemove(device: Row[]): void
     updateSendState(success: boolean, message: string): void
     getFiltered(): Row[]
-    setLogin(token: string): void
-    httpRequest(path: string, body: any): Promise<Response>
+    // setLoggedIn(val: boolean): void
+    httpRequest(path: string, body: any, method: "post" | "get"): Promise<Response>
 }
 
 export function useAppState(): State {
     const [columns, setColumns] = useState<Column[]>([])
     const [devices, setDevices] = useState<Row[]>([])
-    let [version, setVersion] = useState(-1)
+    const [version, setVersion] = useState(-1)
     const [sendMessage, setSendMessage] = useState("")
     const [sendSuccess, setSendSuccess] = useState<boolean>(true)
     const [selected_header, setSelectedHeader] = useState<number>(8)
@@ -51,14 +50,7 @@ export function useAppState(): State {
     const [tabMode, setTabMode] = useState("list")
     const removeDialogOn = useRemember(false)
     const report = useReport(edit, columns, devices, updateSendState, httpRequest)
-    const loggedIn = useRemember(false)
-    const token = useRemember("")
-
-
-    function setLogin(nToken: string) {
-        loggedIn.set(true)
-        token.set(nToken)
-    }
+    const loggedIn = useRemember(true)
 
 
     //intervals
@@ -131,7 +123,7 @@ export function useAppState(): State {
 
     async function sendInsert(body: string[]) {
         setSendMessage("")
-        const response = await httpRequest('app/insert_device', body)
+        const response = await httpRequest('app/insert_device', body, 'post')
 
         const message: string = await response.json()
         if (message == "success") {
@@ -152,7 +144,7 @@ export function useAppState(): State {
     async function sendRemove(devices: Row[]) {
         updateSendState(true, "")
 
-        const response = await httpRequest('app/remove_devices', devices)
+        const response = await httpRequest('app/remove_devices', devices, 'post')
 
         const message: string = await response.json()
         if (message == "success") {
@@ -163,25 +155,25 @@ export function useAppState(): State {
         }
     }
 
-    async function httpRequest(path: string, body: any = {}, method = "post"): Promise<Response> {
+    async function httpRequest(path: string, body: any, method: "post" | "get"): Promise<Response> {
 
         const fullPath = `http://localhost:3000/${path}`
 
         if (method == "post")
             return fetch(fullPath, {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token.val}`,
                 },
                 body: JSON.stringify(body)
             })
         else
             return fetch(fullPath, {
                 method: 'GET',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token.val}`,
                 }
             })
     }
@@ -202,7 +194,6 @@ export function useAppState(): State {
         removeDialogOn,
         report,
         loggedIn,
-        token,
         loadColumns,
         loadDevices,
         updateSort,
@@ -210,7 +201,6 @@ export function useAppState(): State {
         sendRemove,
         updateSendState,
         getFiltered,
-        setLogin,
         httpRequest
     }
 

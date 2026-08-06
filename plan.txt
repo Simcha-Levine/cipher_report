@@ -12,5 +12,16 @@ features to implement:
     10. custom table engine
 
 tasks:
-    1. integrate better-auth 
     2. make insert button visible
+    3. fix login second enter press bug
+
+
+
+permission construction:
+    roles:
+        editor: can see all and edit all,
+        reporter: can see and edit only his association and needs to report to tic report column,
+        viewer: can see all but cant edit
+        not_verified: cant see anything
+     
+    
