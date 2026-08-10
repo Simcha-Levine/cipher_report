@@ -24,4 +24,17 @@ export function evaluateRow(row, columns) {
     }
     return true;
 }
+export function newUserInfo() {
+    return {
+        id: "",
+        name: "",
+        email: "",
+        association: "",
+        phoneNumber: "",
+        role: "",
+        admin: false,
+        verified: false,
+        comment: ""
+    };
+}
 //# sourceMappingURL=types.js.map

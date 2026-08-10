@@ -8,7 +8,7 @@ import userIcon from "./assets/user.svg";
 import send from "./assets/send.svg";
 import v from "./assets/v.svg";
 import { Form, InputButton, ReportDialog } from './Form';
-import type { Row, UserInfo } from '@cipher-report/shared/types';
+import { newUserInfo, type Row, type UserInfo } from '@cipher-report/shared/types';
 import type { State } from './state';
 import { authClient } from './client-auth';
 
@@ -54,13 +54,13 @@ function Row({ device, index }: { device: Row, index: number }) {
                             state.select.updateDragged(false, -1)
                         }}
                     >
-                        {(state.columns[index].type == 'bool') ? (
+                        {(state.deviceColumns[index].type == 'bool') ? (
                             col == "true" &&
                             <img src={v} alt="v" width={15} />
 
                         ) : (
                             <>
-                                {(state.columns[index].name != "serial_number" ||
+                                {(state.deviceColumns[index].name != "serial_number" ||
                                     state.tabMode != 'report' ||
                                     reported)
                                     ?
@@ -103,7 +103,7 @@ function Table() {
                     <thead>
                         <tr>
                             {
-                                state.columns.map((header, index) => (
+                                state.deviceColumns.map((header, index) => (
                                     <th key={`header${index}`}>
                                         <div className='h center header'>
                                             <div
@@ -136,7 +136,7 @@ function FilterTab({ index }: { index: number }) {
     const state = useApp()
 
     const colIndex = state.filters.list[index].selected
-    const colUiName = state.columns[colIndex].uiName
+    const colUiName = state.deviceColumns[colIndex].uiName
 
     return (
         <div className='h search-tab search-item'>
@@ -145,7 +145,7 @@ function FilterTab({ index }: { index: number }) {
                 onChange={(e) => state.filters.updateFilterSelected(index, Number(e.target.value))}
                 style={{ width: `${Math.max(colUiName.length + 3, 3)}ch` }}
             >
-                {state.columns.map((value, index) => (
+                {state.deviceColumns.map((value, index) => (
                     <option key={index} value={index}>{value.uiName}</option>
                 ))}
             </select>
@@ -259,12 +259,12 @@ function Tabs() {
 function UserIcon() {
     const state = useApp()
     const [show, setShow] = useState(false)
-    const [user, setUser] = useState<UserInfo>({ name: "", email: "" })
+    const [user, setUser] = useState<UserInfo | null>(null)
 
     useEffect(() => {
         async function getUserInfo() {
             const response = await state.httpRequest("app/user_info", {}, 'get')
-            const userInfo: UserInfo = await response.json()
+            const userInfo: UserInfo | null = await response.json()
             setUser(userInfo)
         }
         if (show) {
@@ -278,8 +278,18 @@ function UserIcon() {
                 className={`user-info ${!show && 'hidden'}`}
                 onMouseLeave={() => setShow(false)}
             >
-                <div className='user-menu'>{user.name} :שם</div>
-                <div className='user-menu'>{user.email} :אימיל</div>
+                {user &&
+                    <div>
+                        <div className='user-menu'>שם: {user.name}</div>
+                        <div className='user-menu'>{user.email} :אימיל</div>
+                        <div className='user-menu'>{user.association} :שיוך</div>
+                        <div className='user-menu'>{user.phoneNumber} :טלפון</div>
+                        <div className='user-menu'>{user.role} :רמה</div>
+                        <div className='user-menu'>{String(user.admin)} :מנהל</div>
+                        <div className='user-menu'>{String(user.verified)} :מאומת</div>
+                        <div className='user-menu'>{user.comment} :הערה</div>
+                    </div>
+                }
                 <div
                     className='user-menu gray'
                     onMouseDown={async () => {

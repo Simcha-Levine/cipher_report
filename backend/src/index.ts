@@ -1,9 +1,69 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { editDevice, getDevices, insertNewDevice, removeDevice, report, version } from './queries.js'
+import { editDevice, getDevices, getUserData, initUserData, insertNewDevice, removeDevice, report, version } from './queries.js'
 import { cors } from "hono/cors"
-import type { Column, Row, UserInfo } from '@cipher-report/shared/types'
+import type { Column, ColumnPack, InitUser, Row, UserInfo } from '@cipher-report/shared/types'
 import { auth } from './auth.js'
+
+export const user_cols: Column[] = [
+  {
+    type: 'text',
+    name: 'name',
+    uiName: 'שם',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+  {
+    type: 'text',
+    name: 'emil',
+    uiName: 'אימיל',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+  {
+    type: 'text',
+    name: 'association',
+    uiName: 'שיוך',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+  {
+    type: 'serial',
+    name: 'phoneNumber',
+    uiName: 'טלפון',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+  {
+    type: 'text',
+    name: 'role',
+    uiName: 'גישה',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+  {
+    type: 'bool',
+    name: 'admin',
+    uiName: 'מנהל',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+  {
+    type: 'bool',
+    name: 'verified',
+    uiName: 'מאומת',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+  {
+    type: 'text',
+    name: 'comment',
+    uiName: 'הערה',
+    canBeEmpty: false,
+    dynamic: false,
+  },
+
+]
 
 export const columns: Column[] = [
   {
@@ -93,6 +153,12 @@ app.use(
   }),
 );
 
+// login
+app.on(["POST", "GET"], "/api/auth/*", (c) => {
+  return auth.handler(c.req.raw);
+});
+
+//reject none auth users
 app.use("/app/*", async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
@@ -105,23 +171,28 @@ app.use("/app/*", async (c, next) => {
   await next();
 });
 
-app.on(["POST", "GET"], "/api/auth/*", (c) => {
-  return auth.handler(c.req.raw);
-});
+app.post('/app/init_user', async (c) => {
+  const user = c.get('user')!
+  const body = await c.req.json<InitUser>();
+  initUserData(body.phone, body.asso, user.id)
+})
 
 
 app.get('/app/user_info', async (c) => {
   const user = c.get('user')!
-  const info: UserInfo = {
-    name: user.name,
-    email: user.email
+  const info = await getUserData(user.id)
+  if (info) {
+    return c.json(info)
   }
-
-  return c.json(info)
+  return c.json(null)
 })
 
 app.get('/app/columns', async (c) => {
-  return c.json(columns)
+  const pack: ColumnPack = {
+    device: columns,
+    user: user_cols
+  }
+  return c.json(pack)
 })
 
 app.get('/app/devices', async (c) => {

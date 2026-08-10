@@ -1,6 +1,6 @@
 import { Pool } from 'pg'
 import "dotenv/config"
-import { evaluateRow, type ReportResult, type Row } from "@cipher-report/shared/types"
+import { evaluateRow, type ReportResult, type Row, type UserInfo } from "@cipher-report/shared/types"
 import { columns } from './index.js'
 
 export let version = 0
@@ -15,25 +15,51 @@ export const pool = new Pool(
     }
 )
 
-// export async function getUserData(id: number): Promise<UserData | null> {
-//     const result = await pool.query<UserData>(
-//         `SELECT
-//             id,
-//             name,
-//             association,
-//             phone_number AS "phoneNumber",
-//             admin,
-//             authenticated
-//         FROM users
-//         WHERE id = $1
-//         `, [id])
+export async function initUserData(phone: string, asso: string, id: string) {
+    try {
+        await pool.query(
+            `
+            INSERT INTO 
+                user_permissions 
+                (id, association,  comment, role, phone_number)
+            VALUES ($1,$2,$3,$4,$5)
+            `, [id, "", asso, "", phone]);
+    } catch (err: any) {
+        if (err.code === "23505") {
+            // unique violation
+            return "User permissions already exist";
+        } else if (err.code === "23503") {
+            // foreign key violation
+            return "user doesn't exists";
+        }
+        return "error"
+    }
+}
 
-//     if (result.rowCount != 1) {
-//         return null
-//     }
+export async function getUserData(id: string): Promise<UserInfo | null> {
 
-//     return result.rows[0]
-// }
+    const result = await pool.query<UserInfo>(
+        `SELECT
+            u.id,
+            u.name,
+            u.email,
+            p.association,
+            p.role,
+            p.verified,
+            p.admin,
+            p.phone_number AS "phoneNumber",
+            p.comment
+        FROM "user" u
+        JOIN user_permissions p ON u.id = p.id
+        WHERE u.id = $1
+        `, [id])
+
+    if (result.rowCount != 1) {
+        return null
+    }
+
+    return result.rows[0]
+}
 
 export async function getDevices() {
 

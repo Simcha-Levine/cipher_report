@@ -5,7 +5,7 @@ import { Login } from "./SignScreen"
 import type { State } from "./state"
 
 async function testUser(state: State) {
-  const response = await state.httpRequest("app/user", {}, 'get')
+  const response = await state.httpRequest("app/user_info", {}, 'get')
   if (response.status === 401) {
     state.loggedIn.set(false)
   } else {

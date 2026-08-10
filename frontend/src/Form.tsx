@@ -142,10 +142,10 @@ export function Form({ formType, show }: { formType: string, show: boolean }) {
                 }}
             >
                 {
-                    state.columns.map((_, index) => (
+                    state.deviceColumns.map((_, index) => (
                         <td key={index} className={formType == "insert" ? 'sticky' : ''}>
                             {
-                                (state.columns[index].type == 'bool')
+                                (state.deviceColumns[index].type == 'bool')
                                     ?
                                     (<CheckBox id={`${formType}-form`} index={index} input={input}></CheckBox>)
                                     :
@@ -234,9 +234,9 @@ function Confirm() {
         <div className="v">
             {input.inputs.map((_, index) => (
                 <div key={index}>
-                    {state.columns[index].dynamic &&
+                    {state.deviceColumns[index].dynamic &&
                         <div className='confirm-input'>
-                            <div>: {state.columns[index].uiName}</div>
+                            <div>: {state.deviceColumns[index].uiName}</div>
                             <TextInput id={`confirm-form`} index={index} input={input}></TextInput>
                         </div>
                     }

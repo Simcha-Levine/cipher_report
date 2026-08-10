@@ -1,4 +1,4 @@
-import type { Column } from "@cipher-report/shared/types"
+import type { Column, InitUser } from "@cipher-report/shared/types"
 import { useState } from "react"
 import { authClient } from "./client-auth"
 import { useInputForm, type InputForm } from "./inputForm"
@@ -15,7 +15,8 @@ export interface Sign {
 }
 
 export function useSign(
-    setLoggedIn: (val: boolean) => void
+    setLoggedIn: (val: boolean) => void,
+    httpRequest: (path: string, body: any, method: "post" | "get") => Promise<Response>
 ): Sign {
     const [message, setMessage] = useState("")
     const [signType, setSignType] = useState<signType>("login")
@@ -37,14 +38,19 @@ export function useSign(
             result = await authClient.signUp.email({
                 name: inputs[0],
                 email: inputs[1],
-                password: inputs[inputs.length - 1]
+                password: inputs[4]
             })
+
         }
 
         if (result.error) {
             setMessage((result.error.message) ?? "")
         } else {
             setLoggedIn(true)
+            if (signType == "register") {
+                const body: InitUser = { phone: inputs[2], asso: inputs[3] }
+                httpRequest("app/init_user", body, "post")
+            }
         }
     }
 

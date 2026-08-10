@@ -34,7 +34,7 @@ function LogInput({ form, index, isPassword }: { form: InputForm, index: number,
 
 export function Login() {
     const state = useApp()
-    const sign = useSign(state.loggedIn.set)
+    const sign = useSign(state.loggedIn.set, state.httpRequest)
 
     useEffect(() => {
         sign.form.checkInput()

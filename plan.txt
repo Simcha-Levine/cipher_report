@@ -19,9 +19,10 @@ tasks:
 
 permission construction:
     roles:
-        editor: can see all and edit all,
+        editor: can see all and edit all can only see users-info,
         reporter: can see and edit only his association and needs to report to tic report column,
         viewer: can see all but cant edit
-        not_verified: cant see anything
+    verified: boolean if true acording to role else see nothing
+    admin: boolean can verify and change user permissions
      
     

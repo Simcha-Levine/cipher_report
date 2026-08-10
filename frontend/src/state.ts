@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import type { Column, Row } from "@cipher-report/shared/types"
+import type { Column, ColumnPack, Row } from "@cipher-report/shared/types"
 import { useInputForm, type InputForm } from "./inputForm"
 import { checkFilter, useFilters, type Filters } from "./filters"
 import { useEdit, type Edit } from "./edit"
@@ -10,7 +10,8 @@ import { useReport, type Report } from "./report"
 
 
 export interface State {
-    columns: Column[]
+    deviceColumns: Column[],
+    userColumns: Column[]
     devices: Row[]
     sendMessage: string
     sendSuccess: boolean
@@ -36,20 +37,21 @@ export interface State {
 }
 
 export function useAppState(): State {
-    const [columns, setColumns] = useState<Column[]>([])
+    const [deviceColumns, setDeviceColumns] = useState<Column[]>([])
+    const [userColumns, setUserColumns] = useState<Column[]>([])
     const [devices, setDevices] = useState<Row[]>([])
     const [version, setVersion] = useState(-1)
     const [sendMessage, setSendMessage] = useState("")
     const [sendSuccess, setSendSuccess] = useState<boolean>(true)
     const [selected_header, setSelectedHeader] = useState<number>(8)
     const filters = useFilters()
-    const insertForm = useInputForm(columns, sendInsert)
-    const edit = useEdit(columns, updateSendState, httpRequest)
+    const insertForm = useInputForm(deviceColumns, sendInsert)
+    const edit = useEdit(deviceColumns, updateSendState, httpRequest)
     const rightClickMenu = useRightClickMenu()
     const select = useSelect(updateSendState, getFiltered, httpRequest)
     const [tabMode, setTabMode] = useState("list")
     const removeDialogOn = useRemember(false)
-    const report = useReport(edit, columns, devices, updateSendState, httpRequest)
+    const report = useReport(edit, deviceColumns, devices, updateSendState, httpRequest)
     const loggedIn = useRemember(true)
 
 
@@ -101,9 +103,11 @@ export function useAppState(): State {
     async function loadColumns() {
         const response = await httpRequest('app/columns', {}, "get")
 
-        const cols: Column[] = await response.json()
-        await setColumns(cols)
-        insertForm.setInputsEmpty(cols)
+        const cols: ColumnPack = await response.json()
+        await setDeviceColumns(cols.device)
+        insertForm.setInputsEmpty(cols.device)
+
+        setUserColumns(cols.user)
     }
 
     async function loadDevices() {
@@ -180,7 +184,8 @@ export function useAppState(): State {
 
 
     return {
-        columns,
+        deviceColumns,
+        userColumns,
         devices,
         sendMessage,
         sendSuccess,

@@ -6,8 +6,18 @@ export interface Column {
     dynamic: boolean
 }
 
+export interface ColumnPack {
+    device: Column[]
+    user: Column[];
+}
+
 export interface Row {
     id: number
+    columns: string[]
+}
+
+export interface UserRow {
+    id: string
     columns: string[]
 }
 
@@ -78,10 +88,32 @@ export function evaluateRow(row: string[], columns: Column[]): true | ErrorMessa
 // }
 
 export interface UserInfo {
+    id: string
     name: string,
     email: string
-    // association: string,
-    // phoneNumber: string,
-    // admin: boolean,
-    // authenticated: boolean
+    association: string,
+    phoneNumber: string,
+    role: string
+    admin: boolean,
+    verified: boolean
+    comment: string
+}
+
+export function newUserInfo(): UserInfo {
+    return {
+        id: "",
+        name: "",
+        email: "",
+        association: "",
+        phoneNumber: "",
+        role: "",
+        admin: false,
+        verified: false,
+        comment: ""
+    }
+}
+
+export interface InitUser {
+    phone: string,
+    asso: string,
 }
