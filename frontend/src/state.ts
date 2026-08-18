@@ -25,8 +25,8 @@ export interface State {
 }
 
 export function useAppState(): State {
-    const devices: Table = useTable(useDeviceRequest(updateSendState))
-    const users: Table = useTable(useUsersRequest(updateSendState))
+    const devices: Table = useTable(useDeviceRequest(updateSendState), 0)
+    const users: Table = useTable(useUsersRequest(updateSendState), 6)
     const [sendMessage, setSendMessage] = useState("")
     const [sendSuccess, setSendSuccess] = useState<boolean>(true)
     const rightClickMenu = useRightClickMenu()

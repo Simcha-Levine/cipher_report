@@ -6,21 +6,22 @@ import { Form } from './Form';
 import type { Table } from './table';
 
 
-function UiRow({ row, index, table }: {
+function UiRow({ row, index, table, greenIndex }: {
     row: Row,
     index: number,
     table: Table,
+    greenIndex: number
 }) {
     const state = useApp()
     const menu = state.rightClickMenu
     const select = table.select
     const columns = table.columns
 
-    const reported = row.columns[0] == "true"
+    const isGreen = row.columns[greenIndex] == "true"
 
     let name = ""
-    if (reported) {
-        name = "reported"
+    if (isGreen) {
+        name = "green"
     }
 
     let selected = 'not-selected'
@@ -60,7 +61,7 @@ function UiRow({ row, index, table }: {
                             <>
                                 {(columns[index].name != "serial_number" ||
                                     state.tabMode != 'report' ||
-                                    reported)
+                                    isGreen)
                                     ?
                                     col
                                     :
@@ -90,6 +91,7 @@ function UiRows({ table }: { table: Table }) {
                     index={index}
                     row={row}
                     table={table}
+                    greenIndex={table.green}
                 />
             ))
             }

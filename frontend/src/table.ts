@@ -15,6 +15,7 @@ export interface Table {
     insertForm: InputForm
     edit: Edit
     requests: TableRequests
+    green: number
     loadRows(): void
     updateSort(index: number): void
     getFiltered(): Row[]
@@ -24,6 +25,7 @@ export interface Table {
 
 export function useTable(
     requests: TableRequests,
+    green: number
 ): Table {
     const [columns, setColumns] = useState<Column[]>([])
     const [rows, setRows] = useState<Row[]>([])
@@ -88,6 +90,7 @@ export function useTable(
         insertForm,
         edit,
         requests,
+        green,
         loadRows,
         updateSort,
         getFiltered,

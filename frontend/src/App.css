@@ -107,7 +107,7 @@ th:last-child {
   border-radius: 0 8px 0 0;
 }
 
-.reported {
+.green {
   border: 1.5px solid var(--reported-border);
   border-top-width: 2.5px;
   border-bottom-width: 2.5px;
