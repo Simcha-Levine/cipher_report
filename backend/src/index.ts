@@ -1,119 +1,130 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
-import { editDevice, getDevices, getUserData, initUserData, insertNewDevice, removeDevice, report, version } from './queries.js'
+import {
+  editDevice,
+  getDevices,
+  getUserData,
+  initUserData,
+  insertNewDevice,
+  removeDevice,
+  report,
+  devices_version,
+  users_version,
+  getUsers, editUser
+} from './queries.js'
 import { cors } from "hono/cors"
-import type { Column, ColumnPack, InitUser, Row, UserInfo } from '@cipher-report/shared/types'
+import type { Column, ColumnPack, EditRow, InitUser, input, Row, TableRows, UserInfo } from '@cipher-report/shared/types'
 import { auth } from './auth.js'
 
-export const user_cols: Column[] = [
+export const userColumns: Column[] = [
   {
     type: 'text',
     name: 'name',
     uiName: 'שם',
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: [],
   },
   {
     type: 'text',
-    name: 'emil',
+    name: 'email',
     uiName: 'אימיל',
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: [],
   },
   {
     type: 'text',
     name: 'association',
     uiName: 'שיוך',
-    canBeEmpty: false,
-    dynamic: false,
+    canBeEmpty: true,
+    canEditRoles: ["any"],
   },
   {
     type: 'serial',
-    name: 'phoneNumber',
+    name: 'phone_number',
     uiName: 'טלפון',
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: [],
   },
   {
     type: 'text',
     name: 'role',
     uiName: 'גישה',
-    canBeEmpty: false,
-    dynamic: false,
+    canBeEmpty: true,
+    canEditRoles: ["any"],
   },
   {
     type: 'bool',
     name: 'admin',
     uiName: 'מנהל',
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: ["any"],
   },
   {
     type: 'bool',
     name: 'verified',
     uiName: 'מאומת',
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: ["any"],
   },
   {
     type: 'text',
     name: 'comment',
     uiName: 'הערה',
-    canBeEmpty: false,
-    dynamic: false,
+    canBeEmpty: true,
+    canEditRoles: ["any"],
   },
 
 ]
 
-export const columns: Column[] = [
+export const deviceColumns: Column[] = [
   {
     type: 'bool',
     name: 'reported',
     uiName: 'דווח',
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: ["editor"],
   },
   {
     type: 'text',
     name: 'device_name',
     uiName: 'שם מכשיר',
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: ["editor"],
   },
   {
     type: 'serial',
     name: 'serial_number',
     uiName: "'צ",
     canBeEmpty: false,
-    dynamic: false,
+    canEditRoles: ["editor"],
   },
   {
     type: 'text',
     name: 'association',
     uiName: 'שיוך',
     canBeEmpty: false,
-    dynamic: true,
+    canEditRoles: ["editor"],
   },
   {
     type: 'text',
     name: 'assignment',
     uiName: 'יעוד',
     canBeEmpty: false,
-    dynamic: true,
+    canEditRoles: ["editor", "reporter"],
   },
   {
     type: 'text',
     name: 'location',
     uiName: 'מיקום',
     canBeEmpty: true,
-    dynamic: true,
+    canEditRoles: ["editor", "reporter"],
   },
   {
     type: 'serial',
     name: 'vehicle_serial_number',
     uiName: "צ' רכב",
     canBeEmpty: true,
-    dynamic: true,
+    canEditRoles: ["editor", "reporter"],
   },
 
   {
@@ -121,14 +132,14 @@ export const columns: Column[] = [
     name: 'connected_device',
     uiName: "מכשיר מחובר",
     canBeEmpty: true,
-    dynamic: true,
+    canEditRoles: ["editor", "reporter"],
   },
   {
     type: 'text',
     name: 'comments',
     uiName: 'הערות',
     canBeEmpty: true,
-    dynamic: true,
+    canEditRoles: ["editor", "reporter"],
   },
 
 
@@ -189,8 +200,8 @@ app.get('/app/user_info', async (c) => {
 
 app.get('/app/columns', async (c) => {
   const pack: ColumnPack = {
-    device: columns,
-    user: user_cols
+    device: deviceColumns,
+    user: userColumns
   }
   return c.json(pack)
 })
@@ -198,19 +209,33 @@ app.get('/app/columns', async (c) => {
 app.get('/app/devices', async (c) => {
   const uv = Number(c.req.query("version"));
 
-  if (uv != version) {
-    return c.json({
-      version,
-      devices: await getDevices()
-    })
+  if (uv != devices_version) {
+    const table: TableRows = {
+      version: devices_version,
+      rows: await getDevices()
+    }
+    return c.json(table)
   } else {
     return c.json(null)
   }
+})
 
+app.get('/app/users', async (c) => {
+  const uv = Number(c.req.query("version"));
+
+  if (uv != users_version) {
+    const table: TableRows = {
+      version: users_version,
+      rows: await getUsers()
+    }
+    return c.json(table)
+  } else {
+    return c.json(null)
+  }
 })
 
 app.post("/app/insert_device", async (c) => {
-  const body = await c.req.json<string[]>();
+  const body = await c.req.json<input[]>();
 
   const result = await insertNewDevice(body)
 
@@ -218,8 +243,16 @@ app.post("/app/insert_device", async (c) => {
 })
 
 app.post("/app/edit_device", async (c) => {
-  const body = await c.req.json<Row>();
-  const result = await editDevice(body)
+  const body = await c.req.json<EditRow>();
+  const user = c.get('user')!
+  const result = await editDevice(body, user.id)
+  return c.json(result)
+})
+
+app.post("/app/edit_user", async (c) => {
+  const body = await c.req.json<EditRow>();
+  const user = c.get('user')!
+  const result = await editUser(body, user.id)
   return c.json(result)
 })
 

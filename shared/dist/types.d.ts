@@ -1,17 +1,31 @@
+export type role = "editor" | "reporter" | "viewer" | "any" | "none";
+export type input = {
+    name: string;
+    val: string;
+};
+export declare function newInput(name: string, val: string): input;
 export interface Column {
     type: "serial" | "text" | "bool";
     name: string;
     uiName: string;
     canBeEmpty: boolean;
-    dynamic: boolean;
+    canEditRoles: role[];
 }
 export interface ColumnPack {
     device: Column[];
     user: Column[];
 }
+export interface TableRows {
+    version: number;
+    rows: Row[];
+}
 export interface Row {
-    id: number;
+    id: string;
     columns: string[];
+}
+export interface EditRow {
+    id: string;
+    columns: input[];
 }
 export interface UserRow {
     id: string;
@@ -20,20 +34,20 @@ export interface UserRow {
 export interface ReportResult {
     success: boolean;
     message: string;
-    id: number;
+    id: string;
 }
 export interface ErrorMessage {
     column: number;
     status: number;
 }
-export declare function evaluateRow(row: string[], columns: Column[]): true | ErrorMessage;
+export declare function evaluateRow(row: input[], columns: Column[]): true | ErrorMessage;
 export interface UserInfo {
     id: string;
     name: string;
     email: string;
     association: string;
     phoneNumber: string;
-    role: string;
+    role: role;
     admin: boolean;
     verified: boolean;
     comment: string;

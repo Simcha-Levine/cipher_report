@@ -1,6 +1,6 @@
-import type { Column, InitUser } from "@cipher-report/shared/types"
+import type { Column, InitUser, input } from "@cipher-report/shared/types"
 import { useState } from "react"
-import { authClient } from "./client-auth"
+import { authClient, httpRequest } from "./client-auth"
 import { useInputForm, type InputForm } from "./inputForm"
 
 type signType = "login" | "register"
@@ -16,7 +16,6 @@ export interface Sign {
 
 export function useSign(
     setLoggedIn: (val: boolean) => void,
-    httpRequest: (path: string, body: any, method: "post" | "get") => Promise<Response>
 ): Sign {
     const [message, setMessage] = useState("")
     const [signType, setSignType] = useState<signType>("login")
@@ -25,20 +24,20 @@ export function useSign(
     const fields = (signType == "login") ? loginFields : registerFields
     const form = (signType == "login") ? loginForm : registerForm
 
-    async function send(inputs: string[]) {
+    async function send(inputs: input[]) {
 
         let result;
 
         if (signType == "login") {
             result = await authClient.signIn.email({
-                email: inputs[0],
-                password: inputs[1],
+                email: inputs[0].val,
+                password: inputs[1].val,
             });
         } else {
             result = await authClient.signUp.email({
-                name: inputs[0],
-                email: inputs[1],
-                password: inputs[4]
+                name: inputs[0].val,
+                email: inputs[1].val,
+                password: inputs[4].val
             })
 
         }
@@ -48,7 +47,7 @@ export function useSign(
         } else {
             setLoggedIn(true)
             if (signType == "register") {
-                const body: InitUser = { phone: inputs[2], asso: inputs[3] }
+                const body: InitUser = { phone: inputs[2].val, asso: inputs[3].val }
                 httpRequest("app/init_user", body, "post")
             }
         }
@@ -88,8 +87,8 @@ function genField(name: string, uiName: string, isPassword: boolean): Field {
         name,
         uiName,
         canBeEmpty: false,
-        dynamic: false,
-        isPassword
+        isPassword,
+        canEditRoles: []
     }
 }
 

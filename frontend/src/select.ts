@@ -2,22 +2,20 @@ import type { Row } from "@cipher-report/shared/types"
 import { useEffect, useState } from "react"
 
 export interface Select {
-    idList: Set<number>
-    click(id: number): void
+    idList: Set<string>
+    click(id: string): void
     reset(): void
-    sendRemove(): void
+    // sendRemove(): void
     updateDragged(newDragged: boolean, index: number): void
     drag(index: number, ctrl: boolean): void
-    toggle(id: number): void
+    toggle(id: string): void
 }
 
 export function useSelect(
-    updateSendState: (success: boolean, message: string) => void,
     getFiltered: () => Row[],
-    httpRequest: (path: string, body: any, method: "post" | "get") => Promise<Response>
 ): Select {
 
-    const [idList, setIdList] = useState(new Set<number>)
+    const [idList, setIdList] = useState(new Set<string>)
     const [dragged, setDragged] = useState(false)
     const [dragStartIndex, setDragStartIndex] = useState(-1)
 
@@ -51,7 +49,7 @@ export function useSelect(
         }
     }
 
-    function addId(id: number) {
+    function addId(id: string) {
         setIdList(prev => {
             const next = new Set(prev)
             next.add(id)
@@ -59,7 +57,7 @@ export function useSelect(
         })
     }
 
-    function toggle(id: number) {
+    function toggle(id: string) {
         setIdList(prev => {
             const next = new Set(prev)
             if (next.has(id)) {
@@ -71,26 +69,26 @@ export function useSelect(
         })
     }
 
-    function click(id: number) {
+    function click(id: string) {
         setIdList(new Set())
         addId(id)
     }
 
-    async function sendRemove() {
-        updateSendState(true, "")
+    // async function sendRemove() {
+    //     updateSendState(true, "")
 
-        const response = await httpRequest('app/remove_devices', { ids: [...idList] }, 'post')
+    //     const response = await httpRequest('app/remove_devices', { ids: [...idList] }, 'post')
 
 
-        const message: string = await response.json()
-        if (message == "success") {
-            updateSendState(true, "המכשירים הוסרו בהצלחה")
-            reset()
-        } else {
-            updateSendState(false, "ארעה תקלה")
+    //     const message: string = await response.json()
+    //     if (message == "success") {
+    //         updateSendState(true, "המכשירים הוסרו בהצלחה")
+    //         reset()
+    //     } else {
+    //         updateSendState(false, "ארעה תקלה")
 
-        }
-    }
+    //     }
+    // }
 
     function reset() {
         setIdList(new Set())
@@ -100,7 +98,6 @@ export function useSelect(
         idList,
         click,
         reset,
-        sendRemove,
         updateDragged,
         drag,
         toggle,

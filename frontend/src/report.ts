@@ -1,6 +1,7 @@
 import { useRef, useState } from "react"
-import type { Edit } from "./edit"
-import type { Column, ReportResult, Row } from "@cipher-report/shared/types";
+import type { ReportResult } from "@cipher-report/shared/types";
+import { httpRequest } from "./client-auth";
+import type { Table } from "./table";
 
 export interface Report {
     dialogOn: boolean,
@@ -10,11 +11,8 @@ export interface Report {
 }
 
 export function useReport(
-    edit: Edit,
-    columns: Column[],
-    devices: Row[],
+    table: Table,
     updateSendState: (success: boolean, message: string) => void,
-    httpRequest: (path: string, body: any, method: "post" | "get") => Promise<Response>
 ): Report {
     const [dialogOn, setDialogOn] = useState(false)
     const reportRef = useRef<(HTMLInputElement | null)>(null);
@@ -23,21 +21,20 @@ export function useReport(
         setDialogOn(state)
     }
 
-    function setReportDialog(id: number) {
+    function setReportDialog(id: string) {
         setDialogOn(true)
         let last = 0
-        for (let i = columns.length - 1; i > 0; i--) {
-            if (columns[i].dynamic) {
+        for (let i = table.columns.length - 1; i > 0; i--) {
+            if (table.columns[i].canEditRoles.includes("reporter")) {
                 last = i
                 break
             }
         }
-        const row = devices.find((d) => d.id == id)
+        const row = table.rows.find((d) => d.id == id)
         if (row) {
-            console.log(row)
-            edit.updateEditId(row, last)
-            const index = columns.findIndex((e) => e.name == "reported")
-            edit.form.updateInput(index, 'true')
+            table.edit.updateEditId(row, last)
+            const index = table.columns.findIndex((e) => e.name == "reported")
+            table.edit.form.updateInput(index, 'true')
         }
     }
 

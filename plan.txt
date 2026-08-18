@@ -4,9 +4,9 @@ features to implement:
     2. search and filter ✅
     3. edit ✅ and remove ✅
     4. report ✅
-    5. users
-    6. record
-    7. permissions
+    5. users  ✅
+    6. permissions
+    7. record
     8. security
     9. mobile design
     10. custom table engine
@@ -14,6 +14,7 @@ features to implement:
 tasks:
     2. make insert button visible
     3. fix login second enter press bug
+    4. when edit button pressed un focus the form
 
 
 

@@ -1,5 +1,6 @@
-import { evaluateRow, type Column, type Row } from "@cipher-report/shared/types"
+import { evaluateRow, newInput, type Column, type input } from "@cipher-report/shared/types"
 import { useState } from "react"
+import type { Table } from "./table"
 
 export interface InputForm {
     inputs: string[]
@@ -9,8 +10,9 @@ export interface InputForm {
     pointer: number
     sendButtonOn: boolean
     focused: boolean
+    fields: Column[]
     updateInput(index: number, newName: string): void
-    updateOptions(index: number, devices: Row[]): void
+    updateOptions(table: Table): void
     checkInput(): void
     setPointer: React.Dispatch<React.SetStateAction<number>>
     handleEnter(key: string, ctrl: boolean): void
@@ -21,8 +23,8 @@ export interface InputForm {
     pressButton(): void
 }
 
-export function useInputForm(columns: Column[], send: (inputs: string[]) => void): InputForm {
-    const [inputs, setInputs] = useState<string[]>(Array(columns.length).fill(""))
+export function useInputForm(fields: Column[], send: (inputs: input[],) => void): InputForm {
+    const [inputs, setInputs] = useState<string[]>(fields.map(() => ""))
     const [options, setInputOptions] = useState<string[]>([])
     const [pointer, setPointer] = useState(-1)
     const [message, setMessage] = useState("")
@@ -31,7 +33,7 @@ export function useInputForm(columns: Column[], send: (inputs: string[]) => void
     const [focused, setFocused] = useState(false)
 
     function setInputsEmpty(cols: Column[]) {
-        let array = Array(cols.length).fill("")
+        let array = cols.map(() => "")
         for (let i = 0; i < cols.length; i++) {
             if (cols[i].type == "bool") {
                 array[i] = "false"
@@ -39,33 +41,46 @@ export function useInputForm(columns: Column[], send: (inputs: string[]) => void
         }
         setInputs(array)
     }
-    function updateInput(index: number, newName: string) {
+
+    function updateInput(index: number, newVal: string) {
         setInputs(prev =>
-            prev.map((name, i) =>
-                i === index ? newName : name
+            prev.map((c, i) =>
+                i === index ? newVal : c
             )
         );
     }
-    function updateOptions(index: number, devices: Row[]) {
-        let str = inputs[index]
-        const options = [...new Set(devices.map(v => v.columns[index]).filter(v => v?.includes(str) && v != ""))]
-        setInputOptions(options)
+
+    function updateOptions(table: Table) {
+        if (pointer >= 0 && pointer < inputs.length) {
+            const name = fields[pointer].name
+            const index = table.columns.findIndex((c) => c.name == name)
+            const str = inputs[pointer]
+            const options = [...new Set(table.rows.map(v => v.columns[index]).filter(v => v?.includes(str) && v != ""))]
+            setInputOptions(options)
+        }
     }
+
+    function genInputs(inputs: string[]): input[] {
+        if (inputs.length != fields.length) return []
+        return fields.map((c, i) => newInput(c.name, inputs[i]))
+    }
+
     function checkInput() {
-        const result = evaluateRow(inputs, columns)
+        const result = evaluateRow(genInputs(inputs), fields)
         if (result === true) {
             setMessage("הכל תקין")
             setLegal(true)
             return true
         } else {
             switch (result.status) {
-                case 0: setMessage(`${columns[result.column].uiName} צריך להיות מלא`); break
-                case 2: setMessage(`${columns[result.column].uiName} צריך להיות רק מספרים`); break
+                case 0: setMessage(`${fields[result.column].uiName} צריך להיות מלא`); break
+                case 2: setMessage(`${fields[result.column].uiName} צריך להיות רק מספרים`); break
             }
             setLegal(false)
             return false
         }
     }
+
     function handleEnter(key: string, ctrl: boolean) {
         const result = checkInput()
 
@@ -75,7 +90,7 @@ export function useInputForm(columns: Column[], send: (inputs: string[]) => void
                     setPointer(pointer - 1)
             } else {
                 if (sendButtonOn) {
-                    send(inputs)
+                    send(genInputs(inputs))
                     setSendButtonOn(false)
                 } else if (pointer + 1 == inputs.length && result) {
                     setPointer(Math.min(pointer + 1, inputs.length))
@@ -89,7 +104,7 @@ export function useInputForm(columns: Column[], send: (inputs: string[]) => void
 
     function pressButton() {
         if (checkInput()) {
-            send(inputs)
+            send(genInputs(inputs))
             setSendButtonOn(false)
         }
     }
@@ -103,6 +118,7 @@ export function useInputForm(columns: Column[], send: (inputs: string[]) => void
         pointer,
         sendButtonOn,
         focused,
+        fields,
         updateInput,
         updateOptions,
         checkInput,

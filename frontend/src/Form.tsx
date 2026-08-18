@@ -2,11 +2,16 @@ import { useApp } from './context'
 import { useEffect, useRef, useState } from 'react'
 import vb from "./assets/vb.svg";
 import type { InputForm } from './inputForm';
+import type { Table } from './table';
 
 
 
-function CheckBox({ index, input, id }: { index: number, input: InputForm, id: string }) {
-    const state = useApp()
+
+function CheckBox({ index, input, id }: {
+    index: number,
+    input: InputForm,
+    id: string,
+}) {
 
     const [focused, setFocused] = useState(false)
 
@@ -16,7 +21,6 @@ function CheckBox({ index, input, id }: { index: number, input: InputForm, id: s
         if (input.pointer == index) {
             ref.current?.focus()
             setFocused(true)
-            input.updateOptions(index, state.devices)
         }
     }, [input.pointer]);
 
@@ -65,16 +69,17 @@ function CheckBox({ index, input, id }: { index: number, input: InputForm, id: s
     )
 }
 
-function TextInput({ index, input, id }: { index: number, input: InputForm, id: string }) {
-
-    const state = useApp()
+function TextInput({ index, input, id }: {
+    index: number,
+    input: InputForm,
+    id: string,
+}) {
 
     let ref = useRef<(HTMLInputElement | null)>(null);
 
     useEffect(() => {
         if (input.pointer == index) {
             ref.current?.focus()
-            input.updateOptions(index, state.devices)
         }
     }, [input.pointer]);
     return (
@@ -105,24 +110,48 @@ function TextInput({ index, input, id }: { index: number, input: InputForm, id: 
     )
 }
 
+function NormalCell({ value, isBool }: { value: string, isBool: boolean }) {
+    return <div
+        tabIndex={0}
+    >
+        {(isBool) ? (
+            value == "true" &&
+            <img src={vb} alt="v" width={15} />
+        ) : (
+            <>
+                {value}
+            </>
+        )}
+    </div>
+}
 
-export function Form({ formType, show }: { formType: string, show: boolean }) {
 
-    const state = useApp()
-    const input = (formType == "insert") ? state.insertForm : state.edit.form
+export function Form({ formType, show, table, row }: {
+    formType: string,
+    show: boolean,
+    table: Table,
+    row: string[]
+}) {
+    const input = (formType == "insert") ? table.insertForm : table.edit.form
+
+    // useEffect(() => {
+    //     if (formType == "edit" && table.edit.editColumns.length == 0)
+    //         table.edit.reset()
+    // }, []);
 
     useEffect(() => {
         if (formType === 'insert' && input.focused) {
             input.setPointer(0)
-            input.updateOptions(0, state.devices)
+            input.updateOptions(table)
         }
-    }, [state.devices]);
+    }, [table.rows]);
 
     useEffect(() => {
         input.checkInput()
-        input.updateOptions(input.pointer, state.devices)
+        input.updateOptions(table)
     }, [input.inputs, input.pointer]);
 
+    let inputIndex = 0
 
     return (
         <>
@@ -136,33 +165,44 @@ export function Form({ formType, show }: { formType: string, show: boolean }) {
                         input.setFocused(false)
                         input.setSendButtonOn(false)
                         if (formType == 'edit' && e.relatedTarget?.id != "input_button") {
-                            state.edit.reset()
+                            table.edit.reset()
                         }
                     }
                 }}
             >
                 {
-                    state.deviceColumns.map((_, index) => (
+                    table.columns.map((column, index) => (
                         <td key={index} className={formType == "insert" ? 'sticky' : ''}>
                             {
-                                (state.deviceColumns[index].type == 'bool')
+                                (formType == 'insert' ||
+                                    column.canEditRoles.includes(table.edit.role) ||
+                                    column.canEditRoles[0] == "any")
                                     ?
-                                    (<CheckBox id={`${formType}-form`} index={index} input={input}></CheckBox>)
+                                    (table.columns[index].type == 'bool')
+                                        ?
+                                        (<CheckBox id={`${formType}-form`} index={inputIndex++} input={input}></CheckBox>)
+                                        :
+                                        (<TextInput id={`${formType}-form`} index={inputIndex++} input={input}></TextInput>)
                                     :
-                                    (<TextInput id={`${formType}-form`} index={index} input={input}></TextInput>)
+                                    <NormalCell value={row[index]} isBool={table.columns[index].type == 'bool'}></NormalCell>
                             }
                         </td>
                     )).reverse()
                 }
-            </tr >
+            </tr>
         </>
     )
 }
 
-export function InputButton({ input, name, visible }: { input: InputForm, name: string, visible: boolean }) {
+export function InputButton({ input, name, visible, table }: {
+    input: InputForm,
+    name: string,
+    visible: boolean,
+    table: Table
+}) {
     const [focused, setFocused] = useState(false)
 
-    const edit = useApp().edit
+    const edit = table.edit
 
     return (
         <div
@@ -195,7 +235,7 @@ export function InputButton({ input, name, visible }: { input: InputForm, name: 
     )
 }
 
-export function ReportDialog() {
+export function ReportDialog({ table }: { table: Table }) {
     const state = useApp()
 
     if (!state.report.dialogOn)
@@ -205,7 +245,7 @@ export function ReportDialog() {
         <div
             className='back-drop v center'
             onKeyDown={(e) => {
-                if (e.key == "Enter" && state.edit.form.sendButtonOn) {
+                if (e.key == "Enter" && table.edit.form.sendButtonOn) {
                     state.report.updateDialogOn(false)
                     state.report.reportRef.current?.focus()
                 }
@@ -214,29 +254,29 @@ export function ReportDialog() {
             <div className='h center'>
                 <div className='dialog v center'>
                     <h3>וודא שהמידע עדכני</h3>
-                    <Confirm></Confirm>
+                    <Confirm table={table}></Confirm>
                 </div>
             </div>
         </div >
     )
 }
 
-function Confirm() {
+function Confirm({ table }: { table: Table }) {
     const state = useApp()
-    const input = state.edit.form
+    const input = table.edit.form
 
     useEffect(() => {
         input.checkInput()
-        input.updateOptions(input.pointer, state.devices)
+        input.updateOptions(table)
     }, [input.inputs, input.pointer]);
 
     return (
         <div className="v">
             {input.inputs.map((_, index) => (
                 <div key={index}>
-                    {state.deviceColumns[index].dynamic &&
+                    {table.columns[index].canEditRoles.includes("reporter") &&
                         <div className='confirm-input'>
-                            <div>: {state.deviceColumns[index].uiName}</div>
+                            <div>: {table.columns[index].uiName}</div>
                             <TextInput id={`confirm-form`} index={index} input={input}></TextInput>
                         </div>
                     }

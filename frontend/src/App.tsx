@@ -3,15 +3,15 @@ import { AppBody } from "./AppBody"
 import { useApp } from "./context"
 import { Login } from "./SignScreen"
 import type { State } from "./state"
+import { httpRequest } from "./client-auth"
 
 async function testUser(state: State) {
-  const response = await state.httpRequest("app/user_info", {}, 'get')
+  const response = await httpRequest("app/user_info", {}, 'get')
   if (response.status === 401) {
     state.loggedIn.set(false)
   } else {
     state.loggedIn.set(true)
-    const user: { name: string } = await response.json()
-    console.log(user.name)
+    // const user: { name: string } = await response.json()
   }
 }
 

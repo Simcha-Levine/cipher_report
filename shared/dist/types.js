@@ -1,13 +1,17 @@
+export function newInput(name, val) { return { name, val }; }
 function isAllDigits(str) {
     return /^\d+$/.test(str) || str == "";
 }
 export function evaluateRow(row, columns) {
-    if (columns.length != row.length) {
+    if (columns.length == 0)
+        return { column: -1, status: 4 };
+    if (columns.length != row.length)
         return { column: -1, status: 3 };
-    }
+    if (!columns.every((c, i) => c.name == row[i].name))
+        return { column: -1, status: 5 };
     for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
-        const value = row[i];
+        const value = row[i].val;
         if (!column.canBeEmpty && value == "") {
             return { column: i, status: 0 };
         }
@@ -31,7 +35,7 @@ export function newUserInfo() {
         email: "",
         association: "",
         phoneNumber: "",
-        role: "",
+        role: "viewer",
         admin: false,
         verified: false,
         comment: ""

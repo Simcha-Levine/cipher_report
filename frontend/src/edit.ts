@@ -1,23 +1,27 @@
 import { useEffect, useState } from "react"
 import { useInputForm, type InputForm } from "./inputForm"
-import type { Column, Row } from "@cipher-report/shared/types"
+import type { Column, EditRow, input, Row, role, UserInfo } from "@cipher-report/shared/types"
+import { httpRequest } from "./client-auth"
 
 export interface Edit {
     form: InputForm
-    id: number
+    id: string
     changed: boolean
+    role: role
+    editColumns: Column[]
     updateEditId(row: Row, index: number): void
     reset(): void
 }
 
 export function useEdit(
     columns: Column[],
-    updateSendState: (success: boolean, message: string) => void,
-    httpRequest: (path: string, body: any, method: "post" | "get") => Promise<Response>
+    send: (row: EditRow) => Promise<boolean>
 ): Edit {
-    const form = useInputForm(columns, sendEdit)
-    const [id, setId] = useState(-1)
+    const [editColumns, setEditColumns] = useState<Column[]>([])
+    const form = useInputForm(editColumns, sendEdit)
+    const [id, setId] = useState("")
     const [changed, setChanged] = useState(false)
+    const [role, setRole] = useState<role>("none")
     const [original, setOriginal] = useState<string[]>([])
 
 
@@ -29,38 +33,73 @@ export function useEdit(
         }
         return false
     }
+
     useEffect(() => {
         setChanged(checkIfChanged())
     }, [form.inputs])
 
-    function updateEditId(row: Row, index: number) {
-        form.setInputs(row.columns)
-        setOriginal(row.columns)
+    async function getUserRole() {
+        const response = await httpRequest("app/user_info", {}, 'get')
+        const userInfo: UserInfo | null = await response.json()
+        if (userInfo) {
+            return userInfo.role
+        }
+        return "none"
+    }
+
+    async function getEditableColumns(cols: string[]) {
+        if (cols.length != columns.length) return {
+            columns: [],
+            inputs: [],
+            indices: []
+        }
+        const role: role = await getUserRole()
+        setRole(role)
+
+        const pack = columns.map((c, i) => {
+            return {
+                column: c,
+                val: cols[i],
+                index: i
+            }
+        })
+
+        const newPack = pack.filter((c) => {
+            if (c.column.canEditRoles.length > 0) {
+                return c.column.canEditRoles.includes(role) || c.column.canEditRoles[0] == "any"
+            }
+            return false
+        })
+
+        return {
+            columns: newPack.map((c) => c.column),
+            inputs: newPack.map((c) => c.val),
+            indices: newPack.map((c) => c.index)
+        }
+    }
+
+    async function updateEditId(row: Row, index: number) {
+        const pack = await getEditableColumns(row.columns)
+        if (pack.columns.length == 0) return
+        setEditColumns(pack.columns)
+        form.setInputs(pack.inputs)
+        setOriginal(pack.inputs)
         setId(row.id)
-        form.setPointer(index)
+        form.setPointer(Math.max(pack.indices.indexOf(index), 0))
         setChanged(false)
     }
 
-    async function sendEdit(body: string[]) {
+    async function sendEdit(inputs: input[]) {
         if (!changed)
             return
-        updateSendState(true, "")
-
-        const response = await httpRequest('app/edit_device', { id, columns: body }, 'post')
-
-        const message: string = await response.json()
-        if (message == "success") {
-            // loadDevices()
-            updateSendState(true, "מכשיר שונה בהצלחה")
+        const result = await send({ id, columns: inputs })
+        if (result) {
             reset()
-        } else {
-            updateSendState(false, "מכשיר עם הצ' הזה כבר קיים במערכת")
-
         }
     }
 
     function reset() {
-        setId(-1)
+        setId("")
         form.setFocused(false)
         setChanged(false)
     }
@@ -70,6 +109,8 @@ export function useEdit(
         form,
         id,
         changed,
+        role,
+        editColumns,
         updateEditId,
         reset
     }
