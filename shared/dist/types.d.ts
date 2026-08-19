@@ -1,4 +1,4 @@
-export type role = "editor" | "reporter" | "viewer" | "any" | "none";
+export type role = "editor" | "reporter" | "viewer" | "admin" | "any" | "none";
 export type input = {
     name: string;
     val: string;
@@ -48,7 +48,6 @@ export interface UserInfo {
     association: string;
     phoneNumber: string;
     role: role;
-    admin: boolean;
     verified: boolean;
     comment: string;
 }
@@ -57,4 +56,5 @@ export interface InitUser {
     phone: string;
     asso: string;
 }
+export declare function getTime(): string;
 //# sourceMappingURL=types.d.ts.map

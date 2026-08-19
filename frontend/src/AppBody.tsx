@@ -166,8 +166,7 @@ function UserIcon() {
                         <div className='user-menu'>{user.email} :אימיל</div>
                         <div className='user-menu'>{user.association} :שיוך</div>
                         <div className='user-menu'>{user.phoneNumber} :טלפון</div>
-                        <div className='user-menu'>{user.role} :רמה</div>
-                        <div className='user-menu'>{String(user.admin)} :מנהל</div>
+                        <div className='user-menu'>{user.role} :גישה</div>
                         <div className='user-menu'>{String(user.verified)} :מאומת</div>
                         <div className='user-menu'>{user.comment} :הערה</div>
                     </div>
@@ -177,7 +176,7 @@ function UserIcon() {
                     onMouseDown={async () => {
                         const { error } = await authClient.signOut();
                         if (!error) {
-                            state.loggedIn.set(false)
+                            state.resetData()
                         }
                     }}
                 > {'<- יציאה'}
@@ -370,7 +369,8 @@ export function AppBody() {
     const table = state.getCurrentTable()
 
     useEffect(() => {
-        loadStart(state)
+        if (state.loggedIn.val)
+            loadStart(state)
     }, []);
 
     return (

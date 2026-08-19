@@ -11,6 +11,7 @@ export interface Filters {
     removeFilter(index: number): void
     updateFilterSelected(index: number, selected: number): void
     updateFilterString(index: number, filter: string): void
+    clear(): void
 }
 
 export function useFilters(): Filters {
@@ -47,12 +48,17 @@ export function useFilters(): Filters {
         );
     }
 
+    function clear() {
+        setFilters([])
+    }
+
     return {
         list,
         addFilter,
         removeFilter,
         updateFilterSelected,
         updateFilterString,
+        clear,
     }
 }
 

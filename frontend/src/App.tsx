@@ -11,7 +11,6 @@ async function testUser(state: State) {
     state.loggedIn.set(false)
   } else {
     state.loggedIn.set(true)
-    // const user: { name: string } = await response.json()
   }
 }
 

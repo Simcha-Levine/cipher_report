@@ -21,6 +21,7 @@ export interface Table {
     getFiltered(): Row[]
     updateColumns(columns: Column[]): void
     reset(): void
+    resetData(): void
 }
 
 export function useTable(
@@ -80,6 +81,15 @@ export function useTable(
         edit.reset()
     }
 
+    function resetData() {
+        setRows([])
+        setSelectedHeader(0)
+        filters.clear()
+        select.reset()
+        edit.reset()
+        requests.resetVersion()
+    }
+
 
     return {
         columns,
@@ -96,5 +106,6 @@ export function useTable(
         getFiltered,
         updateColumns,
         reset,
+        resetData
     }
 }

@@ -29,6 +29,10 @@ function UiRow({ row, index, table, greenIndex }: {
         selected = 'selected'
     }
 
+    if (columns.length == 0) {
+        return (<tr></tr>)
+    }
+
     return (
         <tr
             className={`row ${selected}`}

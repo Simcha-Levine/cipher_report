@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { EditRow, input, Row, TableRows } from "@cipher-report/shared/types";
+import { type EditRow, type input, type Row, type TableRows } from "@cipher-report/shared/types";
 import { httpRequest } from "./client-auth";
 
 export interface TableRequests {
@@ -7,6 +7,7 @@ export interface TableRequests {
     sendInsert(inputs: input[]): Promise<boolean>
     sendRemove(row: Row[]): Promise<boolean>
     sendEdit(row: EditRow): Promise<boolean>
+    resetVersion(): void
 }
 
 export function useDeviceRequest(
@@ -59,9 +60,7 @@ export function useDeviceRequest(
         },
 
         sendEdit: async function (row: EditRow) {
-
             updateSendState(true, "")
-
             const response = await httpRequest('app/edit_device', row, 'post')
 
             const message: string = await response.json()
@@ -72,6 +71,10 @@ export function useDeviceRequest(
                 updateSendState(false, "מכשיר עם הצ' הזה כבר קיים במערכת")
                 return false
             }
+        },
+
+        resetVersion() {
+            setVersion(-1)
         }
     }
 }
@@ -120,6 +123,10 @@ export function useUsersRequest(
                 updateSendState(false, "ארעה תקלה")
                 return false
             }
+        },
+
+        resetVersion() {
+            setVersion(-1)
         }
     }
 }

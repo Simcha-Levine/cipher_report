@@ -1,4 +1,4 @@
-export type role = "editor" | "reporter" | "viewer" | "any" | "none"
+export type role = "editor" | "reporter" | "viewer" | "admin" | "any" | "none"
 export type input = { name: string, val: string }
 
 export function newInput(name: string, val: string): input { return { name, val } }
@@ -113,7 +113,6 @@ export interface UserInfo {
     association: string,
     phoneNumber: string,
     role: role
-    admin: boolean,
     verified: boolean
     comment: string
 }
@@ -126,7 +125,6 @@ export function newUserInfo(): UserInfo {
         association: "",
         phoneNumber: "",
         role: "viewer",
-        admin: false,
         verified: false,
         comment: ""
     }
@@ -135,4 +133,13 @@ export function newUserInfo(): UserInfo {
 export interface InitUser {
     phone: string,
     asso: string,
+}
+
+export function getTime() {
+    const d = new Date();
+
+    return `${String(d.getHours()).padStart(2, "0")}:` +
+        `${String(d.getMinutes()).padStart(2, "0")}:` +
+        `${String(d.getSeconds()).padStart(2, "0")}:` +
+        `${String(d.getMilliseconds()).padStart(3, "0")}`;
 }

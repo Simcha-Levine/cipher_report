@@ -22,28 +22,30 @@ export interface State {
     updateTabMode(newMode: string): void
     updateSendState(success: boolean, message: string): void
     getCurrentTable(): Table
+    resetData(): void
 }
 
 export function useAppState(): State {
     const devices: Table = useTable(useDeviceRequest(updateSendState), 0)
-    const users: Table = useTable(useUsersRequest(updateSendState), 6)
+    const users: Table = useTable(useUsersRequest(updateSendState), 5)
     const [sendMessage, setSendMessage] = useState("")
     const [sendSuccess, setSendSuccess] = useState<boolean>(true)
     const rightClickMenu = useRightClickMenu()
     const [tabMode, setTabMode] = useState("list")
     const removeDialogOn = useRemember(false)
     const report = useReport(devices, updateSendState)
-    const loggedIn = useRemember(true)
+    const loggedIn = useRemember(false)
 
     //intervals
     useEffect(() => {
         if (!loggedIn.val) return
-
         getCurrentTable().loadRows()
-        const interval = setInterval(getCurrentTable().loadRows, 1000);
+        const interval = setInterval(() => {
+            getCurrentTable().loadRows()
+        }, 1000);
 
         return () => clearInterval(interval);
-    }, [loggedIn])
+    }, [loggedIn.val, tabMode])
 
     function updateTabMode(newMode: string) {
         if (newMode != tabMode) {
@@ -55,7 +57,6 @@ export function useAppState(): State {
 
     async function loadColumns() {
         const response = await httpRequest('app/columns', {}, "get")
-
         const cols: ColumnPack = await response.json()
         devices.updateColumns(cols.device)
         users.updateColumns(cols.user)
@@ -73,6 +74,12 @@ export function useAppState(): State {
         return devices
     }
 
+    function resetData() {
+        devices.resetData()
+        users.resetData()
+        loggedIn.set(false)
+    }
+
     return {
         devices,
         users,
@@ -87,6 +94,7 @@ export function useAppState(): State {
         updateTabMode,
         updateSendState,
         getCurrentTable,
+        resetData,
     }
 
 }

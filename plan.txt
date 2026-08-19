@@ -26,5 +26,3 @@ permission construction:
         viewer: can see all but cant edit
     verified: boolean if true acording to role else see nothing
     admin: boolean can verify and change user permissions
-     
-    

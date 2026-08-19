@@ -1,8 +1,9 @@
 import { Pool } from 'pg'
 import "dotenv/config"
 import { evaluateRow, type Column, type EditRow, type input, type ReportResult, type role, type Row, type UserInfo } from "@cipher-report/shared/types"
-import { deviceColumns, userColumns } from './index.js'
+import { deviceColumns, userColumns } from './tables.js'
 import type { Role } from 'better-auth/plugins'
+import { use } from 'hono/jsx'
 
 export let devices_version = 0
 export let users_version = 0
@@ -25,7 +26,7 @@ export async function initUserData(phone: string, asso: string, id: string) {
                 user_permissions 
                 (id, association,  comment, role, phone_number)
             VALUES ($1,$2,$3,$4,$5)
-            `, [id, "", asso, "", phone]);
+            `, [id, "", asso, "none", phone]);
     } catch (err: any) {
         if (err.code === "23505") {
             // unique violation
@@ -49,7 +50,6 @@ export async function getUserData(id: string): Promise<UserInfo | null> {
             p.association,
             p.role,
             p.verified,
-            p.admin,
             p.phone_number AS "phoneNumber",
             p.comment
         FROM "user" u
@@ -224,7 +224,6 @@ export async function editDevice(device: EditRow, userId: string) {
         }
         return "error"
     }
-    console.log(device)
     devices_version++
     return "success"
 }

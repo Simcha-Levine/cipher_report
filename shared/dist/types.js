@@ -36,9 +36,15 @@ export function newUserInfo() {
         association: "",
         phoneNumber: "",
         role: "viewer",
-        admin: false,
         verified: false,
         comment: ""
     };
+}
+export function getTime() {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, "0")}:` +
+        `${String(d.getMinutes()).padStart(2, "0")}:` +
+        `${String(d.getSeconds()).padStart(2, "0")}:` +
+        `${String(d.getMilliseconds()).padStart(3, "0")}`;
 }
 //# sourceMappingURL=types.js.map

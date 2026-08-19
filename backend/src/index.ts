@@ -13,137 +13,9 @@ import {
   getUsers, editUser
 } from './queries.js'
 import { cors } from "hono/cors"
-import type { Column, ColumnPack, EditRow, InitUser, input, Row, TableRows, UserInfo } from '@cipher-report/shared/types'
+import { getTime, type Column, type ColumnPack, type EditRow, type InitUser, type input, type role, type Row, type TableRows, type UserInfo } from '@cipher-report/shared/types'
 import { auth } from './auth.js'
-
-export const userColumns: Column[] = [
-  {
-    type: 'text',
-    name: 'name',
-    uiName: 'שם',
-    canBeEmpty: false,
-    canEditRoles: [],
-  },
-  {
-    type: 'text',
-    name: 'email',
-    uiName: 'אימיל',
-    canBeEmpty: false,
-    canEditRoles: [],
-  },
-  {
-    type: 'text',
-    name: 'association',
-    uiName: 'שיוך',
-    canBeEmpty: true,
-    canEditRoles: ["any"],
-  },
-  {
-    type: 'serial',
-    name: 'phone_number',
-    uiName: 'טלפון',
-    canBeEmpty: false,
-    canEditRoles: [],
-  },
-  {
-    type: 'text',
-    name: 'role',
-    uiName: 'גישה',
-    canBeEmpty: true,
-    canEditRoles: ["any"],
-  },
-  {
-    type: 'bool',
-    name: 'admin',
-    uiName: 'מנהל',
-    canBeEmpty: false,
-    canEditRoles: ["any"],
-  },
-  {
-    type: 'bool',
-    name: 'verified',
-    uiName: 'מאומת',
-    canBeEmpty: false,
-    canEditRoles: ["any"],
-  },
-  {
-    type: 'text',
-    name: 'comment',
-    uiName: 'הערה',
-    canBeEmpty: true,
-    canEditRoles: ["any"],
-  },
-
-]
-
-export const deviceColumns: Column[] = [
-  {
-    type: 'bool',
-    name: 'reported',
-    uiName: 'דווח',
-    canBeEmpty: false,
-    canEditRoles: ["editor"],
-  },
-  {
-    type: 'text',
-    name: 'device_name',
-    uiName: 'שם מכשיר',
-    canBeEmpty: false,
-    canEditRoles: ["editor"],
-  },
-  {
-    type: 'serial',
-    name: 'serial_number',
-    uiName: "'צ",
-    canBeEmpty: false,
-    canEditRoles: ["editor"],
-  },
-  {
-    type: 'text',
-    name: 'association',
-    uiName: 'שיוך',
-    canBeEmpty: false,
-    canEditRoles: ["editor"],
-  },
-  {
-    type: 'text',
-    name: 'assignment',
-    uiName: 'יעוד',
-    canBeEmpty: false,
-    canEditRoles: ["editor", "reporter"],
-  },
-  {
-    type: 'text',
-    name: 'location',
-    uiName: 'מיקום',
-    canBeEmpty: true,
-    canEditRoles: ["editor", "reporter"],
-  },
-  {
-    type: 'serial',
-    name: 'vehicle_serial_number',
-    uiName: "צ' רכב",
-    canBeEmpty: true,
-    canEditRoles: ["editor", "reporter"],
-  },
-
-  {
-    type: 'serial',
-    name: 'connected_device',
-    uiName: "מכשיר מחובר",
-    canBeEmpty: true,
-    canEditRoles: ["editor", "reporter"],
-  },
-  {
-    type: 'text',
-    name: 'comments',
-    uiName: 'הערות',
-    canBeEmpty: true,
-    canEditRoles: ["editor", "reporter"],
-  },
-
-
-]
+import { deviceColumns, userColumns } from './tables.js'
 
 const app = new Hono<{
   Variables: {
@@ -206,22 +78,32 @@ app.get('/app/columns', async (c) => {
   return c.json(pack)
 })
 
+//protected
 app.get('/app/devices', async (c) => {
   const uv = Number(c.req.query("version"));
 
-  if (uv != devices_version) {
-    const table: TableRows = {
-      version: devices_version,
-      rows: await getDevices()
-    }
-    return c.json(table)
-  } else {
-    return c.json(null)
+  if (uv == devices_version) return c.json(null)
+
+  const userInfo = await getUserData(c.get("user")!.id)
+  const roles: role[] = ["editor", "reporter", "viewer", "admin"]
+  if (!roles.includes(userInfo!.role) || !userInfo!.verified) return c.json(null)
+
+  const table: TableRows = {
+    version: devices_version,
+    rows: await getDevices()
   }
+  return c.json(table)
+
+
 })
 
+//protected
 app.get('/app/users', async (c) => {
   const uv = Number(c.req.query("version"));
+
+  const userInfo = await getUserData(c.get("user")!.id)
+  const roles: role[] = ["editor", "admin"]
+  if (!roles.includes(userInfo!.role) || !userInfo!.verified) return c.json(null)
 
   if (uv != users_version) {
     const table: TableRows = {
@@ -234,14 +116,20 @@ app.get('/app/users', async (c) => {
   }
 })
 
+//protected
 app.post("/app/insert_device", async (c) => {
   const body = await c.req.json<input[]>();
+
+  const userInfo = await getUserData(c.get("user")!.id)
+  const roles: role[] = ["editor", "admin"]
+  if (!roles.includes(userInfo!.role) || !userInfo!.verified) return c.json(null)
 
   const result = await insertNewDevice(body)
 
   return c.json(result)
 })
 
+//protected
 app.post("/app/edit_device", async (c) => {
   const body = await c.req.json<EditRow>();
   const user = c.get('user')!
@@ -249,6 +137,7 @@ app.post("/app/edit_device", async (c) => {
   return c.json(result)
 })
 
+//protected
 app.post("/app/edit_user", async (c) => {
   const body = await c.req.json<EditRow>();
   const user = c.get('user')!
@@ -256,19 +145,36 @@ app.post("/app/edit_user", async (c) => {
   return c.json(result)
 })
 
+//protected
 app.post("/app/report", async (c) => {
+  const userInfo = await getUserData(c.get("user")!.id)
+  const roles: role[] = ["editor", "reporter", "admin"]
+  if (!roles.includes(userInfo!.role) || !userInfo!.verified) return c.json(null)
+
   const body = await c.req.json<string>();
   const result = await report(body)
+
   return c.json(result)
 })
 
+//protected
 app.post("/app/remove_device", async (c) => {
+
+  const userInfo = await getUserData(c.get("user")!.id)
+  const roles: role[] = ["editor", "admin"]
+  if (!roles.includes(userInfo!.role) || !userInfo!.verified) return c.json(null)
+
   const body = await c.req.json<Row>();
   const result = await removeDevice(body)
   return c.json(result)
 })
 
+//protected
 app.post("/app/remove_devices", async (c) => {
+  const userInfo = await getUserData(c.get("user")!.id)
+  const roles: role[] = ["editor", "admin"]
+  if (!roles.includes(userInfo!.role) || !userInfo!.verified) return c.json(null)
+
   const body = await c.req.json<Row[]>();
 
   let val = "success"
