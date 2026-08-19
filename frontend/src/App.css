@@ -206,7 +206,7 @@ th:last-child {
 
 .search-tab {
   background-color: var(--accent);
-  border-radius: 20px;
+  border-radius: 10px;
   /* overflow: hidden; */
   padding: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -497,4 +497,16 @@ th:last-child {
 
 .gray:hover {
   background-color: #87877f;
+}
+
+.form-select {
+  width: 100%;
+  font-size: 100%;
+  border: 0;
+  outline: 0;
+  background-color: transparent;
+}
+
+.form-select.focused {
+  border: solid 2px var(--input-focus);
 }

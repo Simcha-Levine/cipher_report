@@ -5,14 +5,16 @@ features to implement:
     3. edit ✅ and remove ✅
     4. report ✅
     5. users  ✅
-    6. permissions
+    6. permissions ✅
     7. record
     8. security
     9. mobile design
+    
     10. exel conversion
     11. custom table engine
 
 tasks:
+    1. fix insert problem
     2. make insert button visible
     3. fix login second enter press bug
     4. when edit button pressed un focus the form

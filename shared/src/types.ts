@@ -5,11 +5,12 @@ export function newInput(name: string, val: string): input { return { name, val 
 
 
 export interface Column {
-    type: "serial" | "text" | "bool"
+    type: "serial" | "text" | "bool" | "select"
     name: string
     uiName: string
     canBeEmpty: boolean
     canEditRoles: role[]
+    options: string[]
 }
 
 export interface ColumnPack {
@@ -87,24 +88,6 @@ export function evaluateRow(row: input[], columns: Column[]): true | ErrorMessag
     }
     return true
 }
-
-
-// export interface UserRegister {
-//     name: string,
-//     password: string
-//     association: string
-//     phoneNumber: string
-// }
-
-// export interface UserLogin {
-//     name: string,
-//     password: string
-// }
-
-// export interface LoginResult {
-//     success: string,
-//     token: string
-// }
 
 export interface UserInfo {
     id: string

@@ -88,7 +88,8 @@ function genField(name: string, uiName: string, isPassword: boolean): Field {
         uiName,
         canBeEmpty: false,
         isPassword,
-        canEditRoles: []
+        canEditRoles: [],
+        options: []
     }
 }
 

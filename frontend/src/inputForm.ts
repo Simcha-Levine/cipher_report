@@ -21,6 +21,7 @@ export interface InputForm {
     setSendButtonOn: React.Dispatch<React.SetStateAction<boolean>>
     setFocused: React.Dispatch<React.SetStateAction<boolean>>
     pressButton(): void
+    getSelectOptions(index: number): string[]
 }
 
 export function useInputForm(fields: Column[], send: (inputs: input[],) => void): InputForm {
@@ -50,13 +51,22 @@ export function useInputForm(fields: Column[], send: (inputs: input[],) => void)
         );
     }
 
+    function getSelectOptions(index: number) {
+        return fields[index].options
+    }
+
     function updateOptions(table: Table) {
         if (pointer >= 0 && pointer < inputs.length) {
             const name = fields[pointer].name
             const index = table.columns.findIndex((c) => c.name == name)
             const str = inputs[pointer]
-            const options = [...new Set(table.rows.map(v => v.columns[index]).filter(v => v?.includes(str) && v != ""))]
-            setInputOptions(options)
+            const options = new Set(
+                [
+                    ...table.rows.map(v => v.columns[index]),
+                    ...table.columns[index].options
+                ].filter(v => v?.includes(str) && v != "")
+            )
+            setInputOptions([...options])
         }
     }
 
@@ -128,6 +138,7 @@ export function useInputForm(fields: Column[], send: (inputs: input[],) => void)
         setInputs,
         setSendButtonOn,
         setFocused,
-        pressButton
+        pressButton,
+        getSelectOptions,
     }
 }

@@ -74,7 +74,6 @@ function TextInput({ index, input, id }: {
     input: InputForm,
     id: string,
 }) {
-
     let ref = useRef<(HTMLInputElement | null)>(null);
 
     useEffect(() => {
@@ -107,6 +106,49 @@ function TextInput({ index, input, id }: {
                 ))}
             </datalist>
         </>
+    )
+}
+
+function SelectInput({ index, input, id }: {
+    index: number,
+    input: InputForm,
+    id: string,
+}) {
+    let ref = useRef<(HTMLSelectElement | null)>(null);
+    const [focused, setFocused] = useState(false)
+
+    const options = input.getSelectOptions(index)
+
+    useEffect(() => {
+        if (input.pointer == index) {
+            ref.current?.focus()
+        }
+    }, [input.pointer]);
+
+    return (
+        <select
+            className={`form-select ${focused && 'focused'}`}
+            id={id}
+            ref={(e) => { ref.current = e }
+            }
+            value={input.inputs[index]}
+            onChange={(e) => input.updateInput(index, e.target.value)}
+            onFocus={() => {
+                setFocused(true)
+                input.setPointer(index)
+                if (index + 1 < input.inputs.length) {
+                    input.setSendButtonOn(false)
+                }
+            }}
+            onBlur={() => setFocused(false)}
+            onKeyDown={(e) => input.handleEnter(e.key, e.ctrlKey)}
+        >
+            {
+                options.map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                ))
+            }
+        </select >
     )
 }
 
@@ -181,8 +223,9 @@ export function Form({ formType, show, table, row }: {
                                     (table.columns[index].type == 'bool')
                                         ?
                                         (<CheckBox id={`${formType}-form`} index={inputIndex++} input={input}></CheckBox>)
-                                        :
-                                        (<TextInput id={`${formType}-form`} index={inputIndex++} input={input}></TextInput>)
+                                        : (table.columns[index].type == 'select')
+                                            ? (<SelectInput id={`${formType}-form`} index={inputIndex++} input={input}></SelectInput>)
+                                            : (<TextInput id={`${formType}-form`} index={inputIndex++} input={input}></TextInput>)
                                     :
                                     <NormalCell value={row[index]} isBool={table.columns[index].type == 'bool'}></NormalCell>
                             }

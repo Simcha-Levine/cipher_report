@@ -5,11 +5,12 @@ export type input = {
 };
 export declare function newInput(name: string, val: string): input;
 export interface Column {
-    type: "serial" | "text" | "bool";
+    type: "serial" | "text" | "bool" | "select";
     name: string;
     uiName: string;
     canBeEmpty: boolean;
     canEditRoles: role[];
+    options: string[];
 }
 export interface ColumnPack {
     device: Column[];

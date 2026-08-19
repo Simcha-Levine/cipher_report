@@ -1,5 +1,8 @@
 import type { Column } from "@cipher-report/shared/types"
 
+
+const units = ['פלוגה א', 'פלוגה ב', 'פלוגה ג', 'מסייעת', 'פלס"ם', 'חפק מגד', 'חפק סמגד', 'תאג"ד']
+
 export const userColumns: Column[] = [
     {
         type: 'text',
@@ -7,6 +10,7 @@ export const userColumns: Column[] = [
         uiName: 'שם',
         canBeEmpty: false,
         canEditRoles: [],
+        options: [],
     },
     {
         type: 'text',
@@ -14,6 +18,7 @@ export const userColumns: Column[] = [
         uiName: 'אימיל',
         canBeEmpty: false,
         canEditRoles: [],
+        options: [],
     },
     {
         type: 'text',
@@ -21,6 +26,7 @@ export const userColumns: Column[] = [
         uiName: 'שיוך',
         canBeEmpty: true,
         canEditRoles: ["admin"],
+        options: units,
     },
     {
         type: 'serial',
@@ -28,13 +34,15 @@ export const userColumns: Column[] = [
         uiName: 'טלפון',
         canBeEmpty: false,
         canEditRoles: [],
+        options: [],
     },
     {
-        type: 'text',
+        type: 'select',
         name: 'role',
         uiName: 'גישה',
         canBeEmpty: true,
         canEditRoles: ["admin"],
+        options: ["editor", "reporter", "viewer", "admin", "none"],
     },
     {
         type: 'bool',
@@ -42,6 +50,7 @@ export const userColumns: Column[] = [
         uiName: 'מאומת',
         canBeEmpty: false,
         canEditRoles: ["admin"],
+        options: [],
     },
     {
         type: 'text',
@@ -49,6 +58,7 @@ export const userColumns: Column[] = [
         uiName: 'הערה',
         canBeEmpty: true,
         canEditRoles: ["admin"],
+        options: [],
     },
 
 ]
@@ -60,6 +70,7 @@ export const deviceColumns: Column[] = [
         uiName: 'דווח',
         canBeEmpty: false,
         canEditRoles: ["editor", "admin"],
+        options: [],
     },
     {
         type: 'text',
@@ -67,6 +78,7 @@ export const deviceColumns: Column[] = [
         uiName: 'שם מכשיר',
         canBeEmpty: false,
         canEditRoles: ["editor", "admin"],
+        options: [],
     },
     {
         type: 'serial',
@@ -74,13 +86,15 @@ export const deviceColumns: Column[] = [
         uiName: "'צ",
         canBeEmpty: false,
         canEditRoles: ["editor", "admin"],
+        options: [],
     },
     {
-        type: 'text',
+        type: 'select',
         name: 'association',
         uiName: 'שיוך',
         canBeEmpty: false,
         canEditRoles: ["editor", "admin"],
+        options: units,
     },
     {
         type: 'text',
@@ -88,6 +102,7 @@ export const deviceColumns: Column[] = [
         uiName: 'יעוד',
         canBeEmpty: false,
         canEditRoles: ["editor", "reporter", "admin"],
+        options: [],
     },
     {
         type: 'text',
@@ -95,6 +110,7 @@ export const deviceColumns: Column[] = [
         uiName: 'מיקום',
         canBeEmpty: true,
         canEditRoles: ["editor", "reporter", "admin"],
+        options: [],
     },
     {
         type: 'serial',
@@ -102,6 +118,7 @@ export const deviceColumns: Column[] = [
         uiName: "צ' רכב",
         canBeEmpty: true,
         canEditRoles: ["editor", "reporter", "admin"],
+        options: [],
     },
 
     {
@@ -110,6 +127,7 @@ export const deviceColumns: Column[] = [
         uiName: "מכשיר מחובר",
         canBeEmpty: true,
         canEditRoles: ["editor", "reporter", "admin"],
+        options: [],
     },
     {
         type: 'text',
@@ -117,6 +135,7 @@ export const deviceColumns: Column[] = [
         uiName: 'הערות',
         canBeEmpty: true,
         canEditRoles: ["editor", "reporter", "admin"],
+        options: [],
     },
 
 

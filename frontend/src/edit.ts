@@ -24,7 +24,6 @@ export function useEdit(
     const [role, setRole] = useState<role>("none")
     const [original, setOriginal] = useState<string[]>([])
 
-
     function checkIfChanged(): boolean {
         for (let i = 0; i < original.length; i++) {
             if (form.inputs[i] != original[i]) {

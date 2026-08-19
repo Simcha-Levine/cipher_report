@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { type EditRow, type input, type Row, type TableRows } from "@cipher-report/shared/types";
 import { httpRequest } from "./client-auth";
+import { useRef } from "react";
 
 export interface TableRequests {
     loadRows(): Promise<Row[] | null>
@@ -13,19 +13,18 @@ export interface TableRequests {
 export function useDeviceRequest(
     updateSendState: (success: boolean, message: string) => void,
 ): TableRequests {
-    const [version, setVersion] = useState(-1)
+    let version = useRef(-1)
 
     return {
         loadRows: async function () {
             try {
-                const response = await httpRequest(`app/devices?version=${version}`, {}, "get")
+                const response = await httpRequest(`app/devices?version=${version.current}`, {}, "get")
                 const data: null | TableRows = await response.json()
                 if (data) {
-                    setVersion(data.version)
+                    version.current = data.version
                     return data.rows
                 }
             } catch {
-                console.log("nothing")
             }
             return null
         },
@@ -72,9 +71,8 @@ export function useDeviceRequest(
                 return false
             }
         },
-
         resetVersion() {
-            setVersion(-1)
+            version.current = -1
         }
     }
 }
@@ -82,15 +80,15 @@ export function useDeviceRequest(
 export function useUsersRequest(
     updateSendState: (success: boolean, message: string) => void,
 ): TableRequests {
-    const [version, setVersion] = useState(-1)
+    let version = useRef(-1)
 
     return {
         loadRows: async function () {
             try {
-                const response = await httpRequest(`app/users?version=${version}`, {}, "get")
+                const response = await httpRequest(`app/users?version=${version.current}`, {}, "get")
                 const data: null | TableRows = await response.json()
                 if (data) {
-                    setVersion(data.version)
+                    version.current = data.version
                     return data.rows
                 }
             } catch {
@@ -126,7 +124,7 @@ export function useUsersRequest(
         },
 
         resetVersion() {
-            setVersion(-1)
+            version.current = -1
         }
     }
 }

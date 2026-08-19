@@ -1,4 +1,4 @@
-import type { Column, Row } from "@cipher-report/shared/types"
+import type { Column, EditRow, Row } from "@cipher-report/shared/types"
 import { checkFilter, useFilters, type Filters } from "./filters"
 import { useInputForm, type InputForm } from "./inputForm"
 import { useEdit, type Edit } from "./edit"
@@ -34,7 +34,15 @@ export function useTable(
     const filters = useFilters()
     const select = useSelect(getFiltered)
     const insertForm = useInputForm(columns, requests.sendInsert)
-    const edit = useEdit(columns, requests.sendEdit)
+    const edit = useEdit(columns, sendEdit)
+
+    async function sendEdit(row: EditRow) {
+        const success = await requests.sendEdit(row)
+        if (success) {
+            loadRows()
+        }
+        return success
+    }
 
     function updateColumns(columns: Column[]) {
         setColumns(columns)
